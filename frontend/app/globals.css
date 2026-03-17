@@ -1,26 +1,146 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
 
+/* ── RepoBrain Dark Theme Design System ─────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --rb-bg-page: #09090b;
+  --rb-bg-sidebar: #0f0f12;
+  --rb-bg-card: #111116;
+  --rb-bg-hover: #16161e;
+  --rb-bg-input: #0f0f12;
+  --rb-bg-code: #0a0a0d;
+  --rb-bg-nav-hover: #13131a;
+
+  --rb-border: #1e1e26;
+  --rb-border-input: #2a2a35;
+  --rb-border-divider: #1a1a22;
+
+  --rb-blue: #3b82f6;
+  --rb-blue-glow: #1d4ed8;
+  --rb-purple: #8b5cf6;
+  --rb-green: #22c55e;
+  --rb-red: #ef4444;
+  --rb-amber: #f59e0b;
+
+  --rb-text-primary: #f4f4f5;
+  --rb-text-secondary: #9ca3af;
+  --rb-text-muted: #6b7280;
+  --rb-text-dim: #4b5563;
+
+  --rb-font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --rb-font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
+
+  --rb-sidebar-width: 220px;
+  --rb-navbar-height: 52px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--rb-bg-page);
+  --color-foreground: var(--rb-text-primary);
+  --font-sans: var(--rb-font-sans);
+  --font-mono: var(--rb-font-mono);
+
+  --color-rb-page: var(--rb-bg-page);
+  --color-rb-sidebar: var(--rb-bg-sidebar);
+  --color-rb-card: var(--rb-bg-card);
+  --color-rb-hover: var(--rb-bg-hover);
+  --color-rb-input: var(--rb-bg-input);
+  --color-rb-code: var(--rb-bg-code);
+  --color-rb-nav-hover: var(--rb-bg-nav-hover);
+
+  --color-rb-border: var(--rb-border);
+  --color-rb-border-input: var(--rb-border-input);
+  --color-rb-divider: var(--rb-border-divider);
+
+  --color-rb-blue: var(--rb-blue);
+  --color-rb-blue-glow: var(--rb-blue-glow);
+  --color-rb-purple: var(--rb-purple);
+  --color-rb-green: var(--rb-green);
+  --color-rb-red: var(--rb-red);
+  --color-rb-amber: var(--rb-amber);
+
+  --color-rb-text: var(--rb-text-primary);
+  --color-rb-text-secondary: var(--rb-text-secondary);
+  --color-rb-text-muted: var(--rb-text-muted);
+  --color-rb-text-dim: var(--rb-text-dim);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base ───────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--rb-bg-page);
+  color: var(--rb-text-primary);
+  font-family: var(--rb-font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Typography ─────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+code, pre, .font-mono {
+  font-family: var(--rb-font-mono);
+}
+
+/* ── Scrollbar (dark theme) ─────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rb-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--rb-border-input);
+}
+
+/* ── Utility ────────────────────────────────────────────────── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Skeleton pulse animation ───────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background: var(--rb-border);
+  border-radius: 4px;
+}
+
+/* ── Cursor blink for streaming ─────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.streaming-cursor::after {
+  content: "▊";
+  animation: blink 1s step-end infinite;
+  color: var(--rb-blue);
+  margin-left: 2px;
 }
