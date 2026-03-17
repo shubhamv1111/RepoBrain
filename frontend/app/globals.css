@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /* ── RepoBrain Dark Theme Design System ─────────────────────── */
 :root {
@@ -8,7 +7,7 @@
   --rb-bg-card: #111116;
   --rb-bg-hover: #16161e;
   --rb-bg-input: #0f0f12;
-  --rb-bg-code: #0a0a0d;
+  --rb-bg-code: #0d0d10;
   --rb-bg-nav-hover: #13131a;
 
   --rb-border: #1e1e26;

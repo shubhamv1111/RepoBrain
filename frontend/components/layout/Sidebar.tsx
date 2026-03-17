@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signIn } from "next-auth/react";
 import {
   LayoutGrid,
   MessageSquare,
   FolderOpen,
   BarChart3,
+  Github,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 
@@ -127,12 +129,17 @@ export default function Sidebar() {
         </span>
 
         {recentRepos.length === 0 ? (
-          <span
-            className="px-3.5 text-[12px]"
-            style={{ color: "var(--rb-text-muted)" }}
-          >
-            No recent repos
-          </span>
+          <>
+            {["next.js", "langchain", "react"].map((name) => (
+              <span
+                key={name}
+                className="block px-3.5 py-1 text-[13px] cursor-default"
+                style={{ color: "var(--rb-text-muted)" }}
+              >
+                {name}
+              </span>
+            ))}
+          </>
         ) : (
           recentRepos.map((repo) => (
             <Link
@@ -153,18 +160,51 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* Bottom — Login hint */}
-      <div
-        className="px-3.5 py-3"
-        style={{ borderTop: "1px solid var(--rb-border-divider)" }}
-      >
-        <span
-          className="text-[12px]"
-          style={{ color: "var(--rb-text-muted)" }}
-        >
-          RepoBrain v1.0
-        </span>
-      </div>
+      {/* Bottom — Avatar / Login */}
+      <BottomAuth />
     </aside>
+  );
+}
+
+/* ── Bottom auth widget ────────────────────────────────────── */
+function BottomAuth() {
+  const { data: session } = useSession();
+
+  return (
+    <div
+      className="px-3.5 py-3 flex items-center gap-2"
+      style={{ borderTop: "1px solid var(--rb-border-divider)" }}
+    >
+      {session?.user ? (
+        <>
+          <img
+            src={session.user.image || ""}
+            alt={session.user.name || "User"}
+            className="w-6 h-6 rounded-full"
+          />
+          <span
+            className="text-[12px] truncate"
+            style={{ color: "var(--rb-text-secondary)" }}
+          >
+            {session.user.name}
+          </span>
+        </>
+      ) : (
+        <button
+          onClick={() => signIn("github")}
+          className="flex items-center gap-1.5 text-[12px] cursor-pointer bg-transparent border-none"
+          style={{ color: "var(--rb-text-muted)" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--rb-text-primary)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--rb-text-muted)";
+          }}
+        >
+          <Github size={14} />
+          Login with GitHub
+        </button>
+      )}
+    </div>
   );
 }
