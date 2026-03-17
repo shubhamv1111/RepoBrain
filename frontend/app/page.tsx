@@ -114,10 +114,11 @@ export default function Home() {
                       );
                     }
                   }}
-                  className="flex-1 p-3 rounded-lg text-left cursor-pointer transition-colors"
+                  className="flex-1 rounded-lg text-left cursor-pointer transition-colors"
                   style={{
                     background: "var(--rb-bg-card)",
                     border: "1px solid var(--rb-border)",
+                    padding: "14px 18px",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = "var(--rb-border-input)";
@@ -129,7 +130,7 @@ export default function Home() {
                   }}
                 >
                   <p
-                    className="text-[13px] font-mono mb-1"
+                    className="text-[13px] font-mono mb-2"
                     style={{ color: "var(--rb-text-primary)" }}
                   >
                     {repo.name}

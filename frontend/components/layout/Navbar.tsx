@@ -12,11 +12,12 @@ export default function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between"
       style={{
         height: "var(--rb-navbar-height)",
         background: "var(--rb-bg-page)",
         borderBottom: "1px solid var(--rb-border)",
+        padding: "0 24px",
       }}
     >
       {/* Left — Wordmark */}

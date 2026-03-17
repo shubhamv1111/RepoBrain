@@ -74,15 +74,17 @@ export default function Sidebar() {
       }}
     >
       {/* Navigation */}
-      <div className="flex-1 px-2 pt-3 flex flex-col gap-0.5">
+      <div className="flex-1 pt-5 pb-3 flex flex-col gap-1" style={{ padding: "20px 16px 12px 16px" }}>
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
             <Link
               key={item.label}
               href={item.href}
-              className="flex items-center gap-2.5 px-3.5 py-2 rounded-md text-[13px] transition-colors no-underline"
+              className="flex items-center gap-3 py-2.5 rounded-md text-[13px] transition-colors no-underline"
               style={{
+                paddingLeft: "14px",
+                paddingRight: "14px",
                 background: active ? "var(--rb-bg-hover)" : "transparent",
                 color: active
                   ? "var(--rb-text-primary)"
@@ -118,12 +120,12 @@ export default function Sidebar() {
 
         {/* Divider + Recents */}
         <div
-          className="mt-4 mb-2 mx-2"
+          className="mt-5 mb-3"
           style={{ borderTop: "1px solid var(--rb-border-divider)" }}
         />
         <span
-          className="px-3.5 mb-1 text-[10px] uppercase tracking-widest"
-          style={{ color: "var(--rb-text-dim)" }}
+          className="mb-2 text-[10px] uppercase tracking-widest"
+          style={{ color: "var(--rb-text-dim)", paddingLeft: "14px" }}
         >
           Recents
         </span>
@@ -133,8 +135,8 @@ export default function Sidebar() {
             {["next.js", "langchain", "react"].map((name) => (
               <span
                 key={name}
-                className="block px-3.5 py-1 text-[13px] cursor-default"
-                style={{ color: "var(--rb-text-muted)" }}
+                className="block py-1.5 text-[13px] cursor-default"
+                style={{ color: "var(--rb-text-muted)", paddingLeft: "14px" }}
               >
                 {name}
               </span>
@@ -145,8 +147,8 @@ export default function Sidebar() {
             <Link
               key={repo._id}
               href={`/repo/${repo._id}`}
-              className="px-3.5 py-1.5 text-[13px] rounded-md transition-colors no-underline"
-              style={{ color: "var(--rb-text-muted)" }}
+              className="py-1.5 text-[13px] rounded-md transition-colors no-underline"
+              style={{ color: "var(--rb-text-muted)", paddingLeft: "14px" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = "var(--rb-text-primary)";
               }}
@@ -172,8 +174,11 @@ function BottomAuth() {
 
   return (
     <div
-      className="px-3.5 py-3 flex items-center gap-2"
-      style={{ borderTop: "1px solid var(--rb-border-divider)" }}
+      className="flex items-center gap-2.5"
+      style={{
+        borderTop: "1px solid var(--rb-border-divider)",
+        padding: "14px 16px 14px 30px",
+      }}
     >
       {session?.user ? (
         <>
@@ -192,7 +197,7 @@ function BottomAuth() {
       ) : (
         <button
           onClick={() => signIn("github")}
-          className="flex items-center gap-1.5 text-[12px] cursor-pointer bg-transparent border-none"
+          className="flex items-center gap-2 text-[12px] cursor-pointer bg-transparent border-none"
           style={{ color: "var(--rb-text-muted)" }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = "var(--rb-text-primary)";
