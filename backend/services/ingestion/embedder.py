@@ -2,6 +2,7 @@
 RepoBrain — Embedding Service
 Embeds code chunks using sentence-transformers and stores them in ChromaDB.
 """
+from __future__ import annotations
 
 import uuid
 import chromadb

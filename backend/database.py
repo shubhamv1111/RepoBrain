@@ -2,6 +2,7 @@
 RepoBrain Backend — Database Connection
 Async MongoDB client using motor.
 """
+from __future__ import annotations
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from config import get_settings
@@ -15,7 +16,7 @@ async def connect_db() -> None:
     global _client, _db
     settings = get_settings()
     _client = AsyncIOMotorClient(settings.mongodb_uri)
-    _db = _client.get_default_database()
+    _db = _client.get_default_database(default="repobrain")
     # Verify connection
     await _client.admin.command("ping")
     print("✓ Connected to MongoDB")
