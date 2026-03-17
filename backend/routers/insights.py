@@ -3,15 +3,15 @@ RepoBrain — Insights Router
 Handles dependency graphs, issues, hotspots, and commit Q&A.
 """
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from bson import ObjectId
+from fastapi import APIRouter, HTTPException  # type: ignore[import]
+from pydantic import BaseModel  # type: ignore[import]
+from bson import ObjectId  # type: ignore[import]
 
-from database import get_db
-from services.ingestion.embedder import get_chroma_client
-from services.analysis.dependency import build_dependency_graph
-from services.analysis.issues import detect_issues
-from services.analysis.hotspots import analyze_hotspots
+from database import get_db  # type: ignore[import]
+from services.ingestion.embedder import get_chroma_client  # type: ignore[import]
+from services.analysis.dependency import build_dependency_graph  # type: ignore[import]
+from services.analysis.issues import detect_issues  # type: ignore[import]
+from services.analysis.hotspots import analyze_hotspots  # type: ignore[import]
 
 
 router = APIRouter()
@@ -29,7 +29,7 @@ def _get_files_from_chroma(collection_name: str) -> list[dict]:
         results = collection.get(include=["documents", "metadatas"])
 
         # Group by file path
-        file_map: dict[str, dict] = {}
+        file_map: dict[str, dict[str, str]] = {}
         for doc, meta in zip(results["documents"], results["metadatas"]):
             fp = meta.get("filePath", "")
             if fp not in file_map:
@@ -45,7 +45,7 @@ def _get_files_from_chroma(collection_name: str) -> list[dict]:
                 if line == "" and j > 0:
                     start_idx = j + 1
                     break
-            file_map[fp]["content"] += "\n".join(lines[start_idx:]) + "\n"
+            file_map[fp]["content"] += "\n".join(lines[start_idx:]) + "\n"  # type: ignore[index]
 
         return list(file_map.values())
     except Exception:
@@ -97,7 +97,7 @@ async def commit_qa(repo_id: str, body: CommitQARequest):
         raise HTTPException(status_code=404, detail="Repository not found")
 
     # For now, use RAG to answer commit-related questions
-    from services.rag.chain import query_repo
+    from services.rag.chain import query_repo  # type: ignore[import]
 
     collection_name = repo.get("chromaCollectionId", f"repo_{repo_id}")
     result = await query_repo(

@@ -4,7 +4,7 @@ Extract import/require statements to build a file-level dependency graph.
 """
 
 import re
-from typing import Optional
+from typing import Any, Optional
 
 
 def _extract_python_imports(content: str, file_path: str) -> list[str]:
@@ -42,7 +42,7 @@ def _extract_js_ts_imports(content: str, file_path: str) -> list[str]:
     return imports
 
 
-def build_dependency_graph(files: list[dict]) -> dict:
+def build_dependency_graph(files: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Build a dependency graph from file contents.
 
@@ -53,8 +53,8 @@ def build_dependency_graph(files: list[dict]) -> dict:
         { nodes: [...], edges: [...] } for react-flow
     """
     file_paths = {f["path"] for f in files}
-    edges = []
-    edge_id = 0
+    edges: list[dict[str, str]] = []
+    edge_id: int = 0
 
     for f in files:
         if f["language"] == "python":
@@ -68,12 +68,13 @@ def build_dependency_graph(files: list[dict]) -> dict:
             # Try to match with actual file paths
             for fp in file_paths:
                 if fp.endswith(imp) or fp == imp:
-                    edge_id += 1
-                    edges.append({
+                    edge_id += 1  # type: ignore[operator]
+                    edge = {
                         "id": f"e{edge_id}",
-                        "source": f["path"],
+                        "source": f["path"],  # type: ignore[index]
                         "target": fp,
-                    })
+                    }
+                    edges.append(edge)
                     break
 
     # Build nodes from files that have connections
@@ -82,7 +83,7 @@ def build_dependency_graph(files: list[dict]) -> dict:
         connected_files.add(e["source"])
         connected_files.add(e["target"])
 
-    nodes = []
+    nodes: list[dict[str, Any]] = []
     for fp in connected_files:
         file_info = next((f for f in files if f["path"] == fp), None)
         summary = ""
@@ -102,4 +103,4 @@ def build_dependency_graph(files: list[dict]) -> dict:
             "position": {"x": 0, "y": 0},
         })
 
-    return {"nodes": nodes[:50], "edges": edges[:100]}
+    return {"nodes": nodes[:50], "edges": edges[:100]}  # type: ignore[index]

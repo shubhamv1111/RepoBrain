@@ -19,8 +19,8 @@ interface DependencyGraphProps {
 }
 
 export default function DependencyGraph({ graph }: DependencyGraphProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [tooltip, setTooltip] = useState<{ label: string; summary: string; x: number; y: number } | null>(null);
 
   useEffect(() => {

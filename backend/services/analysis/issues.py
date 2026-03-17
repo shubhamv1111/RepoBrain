@@ -5,6 +5,7 @@ Scans code for potential issues using regex and AST-based rules.
 
 import re
 import ast
+from typing import Any
 
 
 REGEX_RULES = [
@@ -48,7 +49,8 @@ def _check_large_functions_python(content: str, path: str) -> list[dict]:
         tree = ast.parse(content)
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                func_lines = node.end_lineno - node.lineno + 1 if node.end_lineno else 0
+                end_line = node.end_lineno if node.end_lineno is not None else node.lineno
+                func_lines = end_line - node.lineno + 1  # type: ignore[operator]
                 if func_lines > 80:
                     issues.append({
                         "id": f"large_function_{node.lineno}",
@@ -94,8 +96,8 @@ def detect_issues(files: list[dict]) -> list[dict]:
     Returns:
         list of { id, severity, message, filePath, line }
     """
-    issues = []
-    issue_counter = 0
+    issues: list[dict[str, Any]] = []
+    issue_counter: int = 0
 
     for f in files:
         content = f["content"]
@@ -106,7 +108,7 @@ def detect_issues(files: list[dict]) -> list[dict]:
         for rule in REGEX_RULES:
             for line_num, line in enumerate(lines, 1):
                 if re.search(rule["pattern"], line, re.IGNORECASE):
-                    issue_counter += 1
+                    issue_counter += 1  # type: ignore[operator]
                     issues.append({
                         "id": f"{rule['id']}_{issue_counter}",
                         "severity": rule["severity"],
@@ -124,4 +126,4 @@ def detect_issues(files: list[dict]) -> list[dict]:
     severity_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
     issues.sort(key=lambda x: severity_order.get(x["severity"], 3))
 
-    return issues[:50]  # Cap at 50
+    return issues[:50]  # type: ignore[index]
