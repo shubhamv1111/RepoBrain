@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  # ── Frontend ───────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env.local
+    depends_on:
+      - backend
+
+  # ── Backend ────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - chroma_data:/app/chroma_store
+    depends_on:
+      - mongo
+
+  # ── MongoDB ────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: repobrain
+
+volumes:
+  mongo_data:
+  chroma_data:
