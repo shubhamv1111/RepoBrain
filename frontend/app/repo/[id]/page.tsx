@@ -78,7 +78,7 @@ export default function RepoOverviewPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-var(--rb-navbar-height))]">
+    <div className="flex h-full">
       {/* LEFT — File Explorer */}
       <div
         className="flex-shrink-0 overflow-y-auto py-3"

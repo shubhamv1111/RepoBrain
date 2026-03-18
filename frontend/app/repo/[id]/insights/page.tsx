@@ -51,7 +51,7 @@ export default function InsightsPage() {
 
   return (
     <div className="p-7">
-      <div className="flex gap-4" style={{ minHeight: "calc(100vh - var(--rb-navbar-height) - 56px)" }}>
+      <div className="flex gap-4" style={{ minHeight: "calc(100vh - 200px)" }}>
         {/* LEFT — 55% */}
         <div className="space-y-4" style={{ flex: "0 0 55%" }}>
           {/* Dependency Graph */}

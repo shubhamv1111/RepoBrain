@@ -10,6 +10,33 @@
   --animate-spin-slow: spin 3s linear infinite;
 }
 
+/* ── Legacy --rb-* variable aliases for inner pages ───────── */
+:root {
+  /* Colors matching the new design system */
+  --rb-bg-primary: #09090b;
+  --rb-bg-card: #111116;
+  --rb-bg-nav: #0f0f12;
+  --rb-bg-hover: rgba(249, 115, 22, 0.08);
+  --rb-bg-nav-hover: rgba(255,255,255,0.04);
+  --rb-border: #1e1e26;
+  --rb-text-primary: #f1f5f9;
+  --rb-text-secondary: #94a3b8;
+  --rb-text-muted: #64748b;
+  --rb-blue: #3b82f6;
+  --rb-green: #22c55e;
+  --rb-orange: #f97316;
+  --rb-purple: #a78bfa;
+  --rb-red: #f87171;
+  --rb-yellow: #fbbf24;
+  --rb-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --rb-navbar-height: 64px;
+  --rb-text-dim: #374151;
+  --rb-border-divider: #1e1e26;
+  --rb-amber: #f59e0b;
+  --rb-bg-input: #0f0f12;
+  --rb-border-input: #2a2a35;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #09090b;

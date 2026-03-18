@@ -129,7 +129,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-var(--rb-navbar-height))]">
+    <div className="flex h-full">
       {/* LEFT — Sessions */}
       <div
         className="flex-shrink-0"
