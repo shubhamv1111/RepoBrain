@@ -1,98 +1,30 @@
 @import "tailwindcss";
 
-/* ── RepoBrain Dark Theme Design System ─────────────────────── */
+@theme {
+  --color-primary: #f97316;
+  --color-background-dark: #09090b;
+  --color-sidebar-dark: #0f0f12;
+  --color-border-dark: #1e1e26;
+  --color-card-dark: #111116;
+  
+  --animate-spin-slow: spin 3s linear infinite;
+}
+
 :root {
-  --rb-bg-page: #09090b;
-  --rb-bg-sidebar: #0f0f12;
-  --rb-bg-card: #111116;
-  --rb-bg-hover: #16161e;
-  --rb-bg-input: #0f0f12;
-  --rb-bg-code: #0d0d10;
-  --rb-bg-nav-hover: #13131a;
-
-  --rb-border: #1e1e26;
-  --rb-border-input: #2a2a35;
-  --rb-border-divider: #1a1a22;
-
-  --rb-blue: #3b82f6;
-  --rb-blue-glow: #1d4ed8;
-  --rb-purple: #8b5cf6;
-  --rb-green: #22c55e;
-  --rb-red: #ef4444;
-  --rb-amber: #f59e0b;
-
-  --rb-text-primary: #f4f4f5;
-  --rb-text-secondary: #9ca3af;
-  --rb-text-muted: #6b7280;
-  --rb-text-dim: #4b5563;
-
-  --rb-font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --rb-font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
-
-  --rb-sidebar-width: 220px;
-  --rb-navbar-height: 52px;
+  --background: #ffffff;
+  --foreground: #09090b;
 }
 
-@theme inline {
-  --color-background: var(--rb-bg-page);
-  --color-foreground: var(--rb-text-primary);
-  --font-sans: var(--rb-font-sans);
-  --font-mono: var(--rb-font-mono);
-
-  --color-rb-page: var(--rb-bg-page);
-  --color-rb-sidebar: var(--rb-bg-sidebar);
-  --color-rb-card: var(--rb-bg-card);
-  --color-rb-hover: var(--rb-bg-hover);
-  --color-rb-input: var(--rb-bg-input);
-  --color-rb-code: var(--rb-bg-code);
-  --color-rb-nav-hover: var(--rb-bg-nav-hover);
-
-  --color-rb-border: var(--rb-border);
-  --color-rb-border-input: var(--rb-border-input);
-  --color-rb-divider: var(--rb-border-divider);
-
-  --color-rb-blue: var(--rb-blue);
-  --color-rb-blue-glow: var(--rb-blue-glow);
-  --color-rb-purple: var(--rb-purple);
-  --color-rb-green: var(--rb-green);
-  --color-rb-red: var(--rb-red);
-  --color-rb-amber: var(--rb-amber);
-
-  --color-rb-text: var(--rb-text-primary);
-  --color-rb-text-secondary: var(--rb-text-secondary);
-  --color-rb-text-muted: var(--rb-text-muted);
-  --color-rb-text-dim: var(--rb-text-dim);
-}
-
-/* ── Base ───────────────────────────────────────────────────── */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  color-scheme: dark;
+.dark {
+  --background: #09090b;
+  --foreground: #f8f7f5;
 }
 
 body {
-  background: var(--rb-bg-page);
-  color: var(--rb-text-primary);
-  font-family: var(--rb-font-sans);
-  font-size: 14px;
-  line-height: 1.5;
+  background-color: var(--background);
+  color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* ── Typography ─────────────────────────────────────────────── */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
-
-code, pre, .font-mono {
-  font-family: var(--rb-font-mono);
 }
 
 /* ── Scrollbar (dark theme) ─────────────────────────────────── */
@@ -106,17 +38,12 @@ code, pre, .font-mono {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--rb-border);
+  background: #1e1e26;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--rb-border-input);
-}
-
-/* ── Utility ────────────────────────────────────────────────── */
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
+  background: #2a2a35;
 }
 
 /* ── Skeleton pulse animation ───────────────────────────────── */
@@ -127,7 +54,7 @@ code, pre, .font-mono {
 
 .skeleton {
   animation: skeleton-pulse 1.5s ease-in-out infinite;
-  background: var(--rb-border);
+  background: #1e1e26;
   border-radius: 4px;
 }
 
@@ -140,6 +67,6 @@ code, pre, .font-mono {
 .streaming-cursor::after {
   content: "▊";
   animation: blink 1s step-end infinite;
-  color: var(--rb-blue);
+  color: #3b82f6;
   margin-left: 2px;
 }

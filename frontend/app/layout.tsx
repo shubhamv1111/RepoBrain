@@ -1,13 +1,16 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import Providers from "@/components/Providers";
-import Navbar from "@/components/layout/Navbar";
-import Sidebar from "@/components/layout/Sidebar";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import Providers from '@/components/Providers';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+});
 
 export const metadata: Metadata = {
-  title: "RepoBrain — AI-Powered GitHub Repository Analyser",
-  description:
-    "Chat with any GitHub repository using AI. RepoBrain indexes every function, class, and file — then lets you ask questions with cited answers.",
+  title: 'RepoBrain - Understand any repository, instantly.',
+  description: 'Analyze, index, and chat with your codebase in seconds.',
 };
 
 export default function RootLayout({
@@ -17,34 +20,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <head>
-        <link
-          rel="preconnect"
-          href="https://fonts.googleapis.com"
-        />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
+      <body
+        className={`${inter.variable} font-sans antialiased bg-background-dark text-slate-100`}
+        suppressHydrationWarning
+      >
         <Providers>
-          <Navbar />
-          <Sidebar />
-          <main
-            className="min-h-screen"
-            style={{
-              paddingTop: "var(--rb-navbar-height)",
-              paddingLeft: "var(--rb-sidebar-width)",
-            }}
-          >
-            {children}
-          </main>
+          {children}
         </Providers>
       </body>
     </html>

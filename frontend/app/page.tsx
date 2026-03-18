@@ -1,167 +1,135 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Star } from "lucide-react";
-import RepoInput from "@/components/ingest/RepoInput";
-import ProgressStepper from "@/components/ingest/ProgressStepper";
+import React, { useState } from 'react';
+import { Sidebar } from '@/components/sidebar';
+import { Header } from '@/components/header';
+import { 
+  Link as LinkIcon, 
+  ArrowRight, 
+  RefreshCw, 
+  BarChart3, 
+  Database,
+  Folder,
+  ChevronRight
+} from 'lucide-react';
+import { motion } from 'motion/react';
 
-const EXAMPLE_REPOS = [
-  {
-    name: "vercel/next.js",
-    language: "TypeScript",
-    langColor: "#3178c6",
-    stars: "120k",
-    url: "https://github.com/vercel/next.js",
-  },
-  {
-    name: "langchain-ai/langchain",
-    language: "Python",
-    langColor: "#3572A5",
-    stars: "92k",
-    url: "https://github.com/langchain-ai/langchain",
-  },
-  {
-    name: "facebook/react",
-    language: "JavaScript",
-    langColor: "#f1e05a",
-    stars: "228k",
-    url: "https://github.com/facebook/react",
-  },
+const recentRepos = [
+  { name: 'vercel/next.js', stars: '112k', time: '2 days ago' },
+  { name: 'facebook/react', stars: '215k', time: '5 days ago' },
+  { name: 'tailwindlabs/tailwindcss', stars: '75k', time: '1 week ago' },
 ];
 
-export default function Home() {
-  const [activeRepoId, setActiveRepoId] = useState<string | null>(null);
-  const router = useRouter();
-
-  const handleIngestComplete = () => {
-    if (activeRepoId) {
-      router.push(`/repo/${activeRepoId}`);
-    }
-  };
+export default function HomePage() {
+  const [url, setUrl] = useState('');
 
   return (
-    <div
-      className="flex items-center justify-center"
-      style={{ minHeight: "calc(100vh - var(--rb-navbar-height))" }}
-    >
-      <div className="w-full max-w-[520px] text-center px-4">
-        {/* Eyebrow */}
-        <p
-          className="text-[11px] uppercase tracking-[0.1em] mb-3"
-          style={{ color: "var(--rb-text-muted)" }}
-        >
-          GitHub Repository Analyser
-        </p>
+    <div className="flex h-screen overflow-hidden bg-background-dark">
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Header />
+        
+        <main className="flex-1 overflow-y-auto pt-20 pb-12 px-6">
+          <div className="max-w-[640px] mx-auto w-full">
+            {/* Hero Section */}
+            <div className="text-center mb-12">
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-4xl md:text-5xl font-bold text-slate-100 tracking-tight leading-tight mb-4"
+              >
+                Understand any repository, instantly.
+              </motion.h2>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-slate-400 text-lg"
+              >
+                Analyze, index, and chat with your codebase in seconds.
+              </motion.p>
+            </div>
 
-        {/* Heading */}
-        <h1
-          className="text-[22px] font-medium mb-3"
-          style={{
-            color: "var(--rb-text-primary)",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Ask anything about any codebase
-        </h1>
+            {/* Input Field */}
+            <div className="relative mb-12 group">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <LinkIcon className="w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
+              </div>
+              <input 
+                type="text"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className="w-full h-14 pl-12 pr-14 bg-card-dark border border-border-dark rounded-xl text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-base"
+                placeholder="Enter a GitHub URL..."
+              />
+              <button className="absolute right-2 top-2 h-10 w-10 flex items-center justify-center bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
 
-        {/* Subtitle */}
-        <p
-          className="text-sm leading-relaxed mb-5"
-          style={{ color: "var(--rb-text-muted)" }}
-        >
-          Paste a GitHub URL. RepoBrain indexes every function, class, and file
-          — then lets you chat with it.
-        </p>
+            {/* Stepper Progress */}
+            <div className="relative flex justify-between items-center mb-20">
+              <div className="absolute top-1/2 left-0 w-full h-px bg-border-dark -z-10"></div>
+              
+              <div className="flex flex-col items-center gap-3 bg-background-dark px-4">
+                <div className="w-8 h-8 rounded-full border-2 border-primary bg-background-dark flex items-center justify-center">
+                  <RefreshCw className="w-4 h-4 text-primary animate-spin" style={{ animationDuration: '3s' }} />
+                </div>
+                <span className="text-xs font-semibold text-slate-300 uppercase tracking-widest">1. Syncing</span>
+              </div>
 
-        {/* Repo Input */}
-        <RepoInput onSubmit={(repoId) => setActiveRepoId(repoId)} />
+              <div className="flex flex-col items-center gap-3 bg-background-dark px-4">
+                <div className="w-8 h-8 rounded-full border-2 border-border-dark bg-background-dark flex items-center justify-center text-slate-600">
+                  <BarChart3 className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">2. Analyzing</span>
+              </div>
 
-        {/* Progress Stepper */}
-        {activeRepoId && (
-          <ProgressStepper
-            repoId={activeRepoId}
-            onComplete={handleIngestComplete}
-          />
-        )}
+              <div className="flex flex-col items-center gap-3 bg-background-dark px-4">
+                <div className="w-8 h-8 rounded-full border-2 border-border-dark bg-background-dark flex items-center justify-center text-slate-600">
+                  <Database className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">3. Indexing</span>
+              </div>
+            </div>
 
-        {/* Quick examples */}
-        {!activeRepoId && (
-          <div className="mt-8">
-            <p
-              className="text-[12px] mb-3"
-              style={{ color: "var(--rb-text-muted)" }}
-            >
-              Or start with a popular repo —
-            </p>
-            <div className="flex gap-3 justify-center">
-              {EXAMPLE_REPOS.map((repo) => (
-                <button
-                  key={repo.name}
-                  onClick={() => {
-                    const input = document.querySelector(
-                      'input[type="text"]'
-                    ) as HTMLInputElement;
-                    if (input) {
-                      const nativeInputValueSetter =
-                        Object.getOwnPropertyDescriptor(
-                          window.HTMLInputElement.prototype,
-                          "value"
-                        )?.set;
-                      nativeInputValueSetter?.call(input, repo.url);
-                      input.dispatchEvent(
-                        new Event("input", { bubbles: true })
-                      );
-                    }
-                  }}
-                  className="flex-1 rounded-lg text-left cursor-pointer transition-colors"
-                  style={{
-                    background: "var(--rb-bg-card)",
-                    border: "1px solid var(--rb-border)",
-                    padding: "14px 18px",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "var(--rb-border-input)";
-                    e.currentTarget.style.background = "var(--rb-bg-hover)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "var(--rb-border)";
-                    e.currentTarget.style.background = "var(--rb-bg-card)";
-                  }}
-                >
-                  <p
-                    className="text-[13px] font-mono mb-2"
-                    style={{ color: "var(--rb-text-primary)" }}
+            {/* Recent Repositories */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Recent Repositories</h3>
+                <button className="text-xs font-semibold text-primary hover:underline">View all</button>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                {recentRepos.map((repo, i) => (
+                  <motion.div 
+                    key={repo.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="group flex items-center justify-between p-4 bg-card-dark border border-border-dark rounded-xl hover:border-slate-700 transition-all cursor-pointer"
                   >
-                    {repo.name}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ background: repo.langColor }}
-                    />
-                    <span
-                      className="text-[12px]"
-                      style={{ color: "var(--rb-text-secondary)" }}
-                    >
-                      {repo.language}
-                    </span>
-                    <Star
-                      size={10}
-                      style={{ color: "var(--rb-text-muted)" }}
-                    />
-                    <span
-                      className="text-[12px]"
-                      style={{ color: "var(--rb-text-muted)" }}
-                    >
-                      {repo.stars}
-                    </span>
-                  </div>
-                </button>
-              ))}
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center group-hover:bg-slate-700 transition-colors">
+                        <Folder className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-200">{repo.name}</h4>
+                        <p className="text-xs text-slate-500">Indexed {repo.time} • {repo.stars} stars</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </div>
-        )}
+        </main>
+
+        <footer className="p-6 border-t border-border-dark text-center">
+          <p className="text-slate-600 text-xs">RepoBrain © 2024. All indexed repositories are public domain or explicitly granted.</p>
+        </footer>
       </div>
     </div>
   );
