@@ -15,11 +15,17 @@ async def connect_db() -> None:
     """Initialize MongoDB connection."""
     global _client, _db
     settings = get_settings()
-    _client = AsyncIOMotorClient(settings.mongodb_uri)
+    _client = AsyncIOMotorClient(
+        settings.mongodb_uri,
+        serverSelectionTimeoutMS=5000,
+    )
     _db = _client.get_default_database(default="repobrain")
-    # Verify connection
-    await _client.admin.command("ping")
-    print("✓ Connected to MongoDB")
+    # Verify connection — non-fatal so startup isn't blocked by transient SSL issues
+    try:
+        await _client.admin.command("ping")
+        print("✓ Connected to MongoDB")
+    except Exception as exc:  # noqa: BLE001
+        print(f"⚠  MongoDB ping failed at startup (will retry on first request): {exc}")
 
 
 async def close_db() -> None:
