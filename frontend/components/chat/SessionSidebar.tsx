@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 
 interface SessionItem {
@@ -17,14 +18,26 @@ interface SessionSidebarProps {
 
 function timeAgo(dateStr: string): string {
   if (!dateStr) return "";
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "now";
+  const ms = Date.now() - new Date(dateStr).getTime();
+  if (ms < 0) return "just now";
+  const mins = Math.floor(ms / 60_000);
+  if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+
+/** Ticks every minute so relative timestamps stay fresh while the page is open. */
+function useClock() {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
 }
 
 export default function SessionSidebar({
@@ -33,6 +46,8 @@ export default function SessionSidebar({
   onSelectSession,
   onNewChat,
 }: SessionSidebarProps) {
+  useClock();
+
   return (
     <div className="h-full flex flex-col">
       <p

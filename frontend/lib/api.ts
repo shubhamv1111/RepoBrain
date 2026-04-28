@@ -29,8 +29,9 @@ export const queryRepo = (
   repoId: string,
   query: string,
   sessionId?: string,
-  topK = 5
-) => api.post(`/repos/${repoId}/query`, { query, sessionId, topK });
+  topK = 5,
+  model?: string
+) => api.post(`/repos/${repoId}/query`, { query, sessionId, topK, model });
 
 export const submitFeedback = (
   queryId: string,
@@ -48,8 +49,8 @@ export const getSession = (sessionId: string) =>
 export const getRepoInsights = (repoId: string) =>
   api.get(`/repos/${repoId}/insights`);
 
-export const commitQA = (repoId: string, query: string) =>
-  api.post(`/repos/${repoId}/commit-qa`, { query });
+export const commitQA = (repoId: string, query: string, model?: string) =>
+  api.post(`/repos/${repoId}/commit-qa`, { query, model });
 
 // ─── Auth ───────────────────────────────────────────────────
 export const getMe = () => api.get("/auth/me");

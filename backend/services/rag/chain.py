@@ -16,11 +16,22 @@ from services.rag.prompts import RAG_PROMPT
 from services.rag.retriever import retrieve_chunks
 
 
-def _get_llm():
-    """Get the LLM client — OpenAI primary, Groq fallback."""
+def _get_llm(model: str | None = None):
+    """
+    Get the LLM client.
+
+    Args:
+        model: "openai" | "groq" | None.
+               None → use OpenAI if key is present, else fall back to Groq.
+               "openai" → force OpenAI (error if key missing).
+               "groq"   → force Groq   (error if key missing).
+    """
     settings = get_settings()
 
-    if settings.openai_api_key:
+    prefer_groq = model == "groq"
+    prefer_openai = model == "openai" or model is None
+
+    if prefer_openai and settings.openai_api_key:
         return ChatOpenAI(
             model="gpt-4o",
             api_key=settings.openai_api_key,
@@ -28,10 +39,19 @@ def _get_llm():
             max_tokens=1500,
         )
 
-    if settings.groq_api_key:
+    if settings.groq_api_key and (prefer_groq or not settings.openai_api_key):
         return ChatGroq(
             model="llama-3.1-8b-instant",
             api_key=settings.groq_api_key,
+            temperature=0.3,
+            max_tokens=1500,
+        )
+
+    # Last-resort: if groq preferred but openai is the only key available
+    if settings.openai_api_key:
+        return ChatOpenAI(
+            model="gpt-4o",
+            api_key=settings.openai_api_key,
             temperature=0.3,
             max_tokens=1500,
         )
@@ -62,6 +82,7 @@ async def query_repo(
     repo_name: str,
     question: str,
     top_k: int = 5,
+    model: str | None = None,
 ) -> dict:
     """
     Run a RAG query against a repo's indexed code.
@@ -90,7 +111,7 @@ async def query_repo(
     context = "\n".join(context_parts)
 
     # Step 3: Call LLM
-    llm = _get_llm()
+    llm = _get_llm(model)
     if not llm:
         return {
             "answer": "No LLM API key configured. Please set OPENAI_API_KEY or GROQ_API_KEY.",

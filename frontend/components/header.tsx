@@ -2,12 +2,11 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Bell, Search, X, Github } from 'lucide-react';
+import { X, Github } from 'lucide-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 
 interface HeaderProps {
   breadcrumb?: { label: string; href?: string }[];
-  showSearch?: boolean;
 }
 
 function SignInModal({ onClose }: { onClose: () => void }) {
@@ -72,7 +71,7 @@ function SignInModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function Header({ breadcrumb, showSearch = false }: HeaderProps) {
+export function Header({ breadcrumb }: HeaderProps) {
   const { data: session, status } = useSession();
   const [showModal, setShowModal] = useState(false);
 
@@ -96,16 +95,6 @@ export function Header({ breadcrumb, showSearch = false }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-4">
-          {showSearch && (
-            <button className="p-2 text-slate-400 hover:text-slate-100 transition-colors">
-              <Search className="w-5 h-5" />
-            </button>
-          )}
-          <button className="p-2 text-slate-400 hover:text-slate-100 transition-colors relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border border-background-dark" />
-          </button>
-
           {status === 'authenticated' && session?.user ? (
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-slate-800 border border-border-dark overflow-hidden relative">

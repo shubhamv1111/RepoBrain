@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Send } from "lucide-react";
 import { queryRepo, submitFeedback, getRepoSessions, getSession } from "@/lib/api";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, initModelPreference } from "@/lib/store";
 import MessageBubble from "@/components/chat/MessageBubble";
 import SourcesPanel from "@/components/chat/SourcesPanel";
 import SessionSidebar from "@/components/chat/SessionSidebar";
@@ -15,7 +15,11 @@ export default function ChatPage() {
   const params = useParams();
   const repoId = params.id as string;
   const currentRepo = useAppStore((s) => s.currentRepo);
+  const preferredModel = useAppStore((s) => s.preferredModel);
   const repoName = currentRepo?.name || "repository";
+
+  // Hydrate model preference from localStorage on first render
+  useEffect(() => { initModelPreference(); }, []);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
@@ -57,7 +61,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMsg]);
 
     try {
-      const res = await queryRepo(repoId, query, sessionId || undefined);
+      const res = await queryRepo(repoId, query, sessionId || undefined, 5, preferredModel);
       const data = res.data;
 
       setSessionId(data.sessionId);

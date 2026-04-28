@@ -41,6 +41,7 @@ async def handle_query(repo_id: str, body: QueryRequest):
         repo_name=repo.get("name", ""),
         question=body.query,
         top_k=body.topK,
+        model=body.model,
     )
 
     query_id = str(uuid.uuid4())

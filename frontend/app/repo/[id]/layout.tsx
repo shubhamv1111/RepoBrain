@@ -19,7 +19,7 @@ export default function RepoLayout({ children }: { children: React.ReactNode }) 
     <div className="flex h-screen overflow-hidden bg-background-dark">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header breadcrumb={breadcrumb} showSearch />
+        <Header breadcrumb={breadcrumb} />
         {/* This wrapping div fills the remaining height below the header */}
         <div className="flex-1 overflow-hidden">
           {children}

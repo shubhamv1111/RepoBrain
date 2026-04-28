@@ -22,6 +22,7 @@ router = APIRouter()
 
 class CommitQARequest(BaseModel):
     query: str
+    model: str | None = None
 
 
 def _get_files_from_chroma(collection_name: str) -> list[dict]:
@@ -112,7 +113,7 @@ async def commit_qa(repo_id: str, body: CommitQARequest):
             question=body.query,
             commits=commits_text,
         )
-        llm = _get_llm()
+        llm = _get_llm(body.model)
         if llm:
             response = await llm.ainvoke([HumanMessage(content=prompt)])
             return {
@@ -127,6 +128,7 @@ async def commit_qa(repo_id: str, body: CommitQARequest):
         repo_name=repo.get("name", ""),
         question=body.query,
         top_k=5,
+        model=body.model,
     )
     return {
         "answer": result["answer"],

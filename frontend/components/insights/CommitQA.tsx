@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { commitQA } from "@/lib/api";
+import { useAppStore, initModelPreference } from "@/lib/store";
 
 interface CommitQAProps {
   repoId: string;
@@ -11,12 +12,15 @@ export default function CommitQA({ repoId }: CommitQAProps) {
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
+  const preferredModel = useAppStore((s) => s.preferredModel);
+
+  useEffect(() => { initModelPreference(); }, []);
 
   const handleSubmit = async () => {
     if (!query.trim() || loading) return;
     setLoading(true);
     try {
-      const res = await commitQA(repoId, query);
+      const res = await commitQA(repoId, query, preferredModel);
       setAnswer(res.data.answer);
     } catch {
       setAnswer("Failed to get answer.");

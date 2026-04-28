@@ -1,6 +1,16 @@
 import { create } from "zustand";
 import type { Repo, ChatSession } from "@/types";
 
+export type ModelPreference = "openai" | "groq";
+
+const MODEL_STORAGE_KEY = "repobrain_model_preference";
+
+function loadModelPreference(): ModelPreference {
+  if (typeof window === "undefined") return "openai";
+  const stored = localStorage.getItem(MODEL_STORAGE_KEY);
+  return stored === "groq" ? "groq" : "openai";
+}
+
 interface AppState {
   // ─── Current repo context ─────────────────────────────────
   currentRepo: Repo | null;
@@ -18,6 +28,10 @@ interface AppState {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
+
+  // ─── LLM model preference ─────────────────────────────────
+  preferredModel: ModelPreference;
+  setPreferredModel: (model: ModelPreference) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -37,4 +51,18 @@ export const useAppStore = create<AppState>((set) => ({
   sidebarOpen: true,
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
+
+  preferredModel: "openai",
+  setPreferredModel: (model) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(MODEL_STORAGE_KEY, model);
+    }
+    set({ preferredModel: model });
+  },
 }));
+
+/** Initialise the model preference from localStorage on the client. */
+export function initModelPreference() {
+  const model = loadModelPreference();
+  useAppStore.setState({ preferredModel: model });
+}
