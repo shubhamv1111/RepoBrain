@@ -88,8 +88,14 @@ export default function InsightsPage() {
               <span className="text-[12px]" style={{ color: "var(--rb-text-secondary)" }}>
                 Architecture
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "#1e1432", color: "var(--rb-purple)" }}>
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded"
+                style={{ background: "#1e1432", color: "var(--rb-purple)" }}
+              >
                 AI
+              </span>
+              <span className="text-[10px]" style={{ color: "var(--rb-text-muted)" }}>
+                click to expand
               </span>
             </div>
             <MermaidDiagram diagram={data.mermaidDiagram} />

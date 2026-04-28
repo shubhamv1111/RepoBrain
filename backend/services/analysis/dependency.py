@@ -12,15 +12,21 @@ def _extract_python_imports(content: str, file_path: str) -> list[str]:
     imports = []
     for line in content.split("\n"):
         line = line.strip()
+        # Skip stdlib / third-party single-word imports (no dots indicating package path)
         # from X import Y
         m = re.match(r"^from\s+([\w.]+)\s+import", line)
         if m:
-            imports.append(m.group(1).replace(".", "/") + ".py")
+            # Only include relative-looking dotted paths (e.g. services.auth, not os)
+            module = m.group(1)
+            if "." in module or module.startswith("."):
+                imports.append(module.lstrip(".").replace(".", "/"))
             continue
         # import X
         m = re.match(r"^import\s+([\w.]+)", line)
         if m:
-            imports.append(m.group(1).replace(".", "/") + ".py")
+            module = m.group(1)
+            if "." in module:
+                imports.append(module.replace(".", "/"))
     return imports
 
 
@@ -35,10 +41,16 @@ def _extract_js_ts_imports(content: str, file_path: str) -> list[str]:
     for pattern in patterns:
         for m in re.finditer(pattern, content):
             target = m.group(1)
-            # Resolve relative path
-            if not target.endswith((".js", ".ts", ".tsx", ".jsx")):
-                target += ".ts"  # Default extension
-            imports.append(target)
+            # Skip parent-directory imports — can't resolve without full path
+            if target.startswith("../"):
+                continue
+            # Strip leading ./
+            if target.startswith("./"):
+                target = target[2:]
+            # Strip known extensions so matching works regardless of .js/.ts/.tsx
+            target = re.sub(r"\.(js|jsx|ts|tsx)$", "", target)
+            if target:
+                imports.append(target)
     return imports
 
 
@@ -65,9 +77,12 @@ def build_dependency_graph(files: list[dict[str, Any]]) -> dict[str, Any]:
             continue
 
         for imp in imports:
-            # Try to match with actual file paths
+            # Strip extensions from both sides for flexible matching
+            imp_stem = re.sub(r"\.(js|jsx|ts|tsx|py)$", "", imp)
             for fp in file_paths:
-                if fp.endswith(imp) or fp == imp:
+                fp_stem = re.sub(r"\.(js|jsx|ts|tsx|py)$", "", fp)
+                # Match exact stem or path ending with /imp_stem
+                if fp_stem == imp_stem or fp_stem.endswith("/" + imp_stem):
                     edge_id += 1  # type: ignore[operator]
                     edge = {
                         "id": f"e{edge_id}",

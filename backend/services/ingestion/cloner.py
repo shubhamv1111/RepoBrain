@@ -111,13 +111,14 @@ def clone_and_collect(
     repo_url: str,
     token: Optional[str] = None,
     progress_callback=None,
-) -> tuple[str, list[dict]]:
+) -> tuple[str, list[dict], list[dict]]:
     """
-    Clone a GitHub repo and collect indexable files.
+    Clone a GitHub repo and collect indexable files and recent commits.
 
     Returns:
-        (clone_dir, files) where files is a list of:
-        { path, content, extension, language }
+        (clone_dir, files, commits) where:
+          - files is a list of { path, content, extension, language }
+          - commits is a list of { hash, message, author, date }
     """
     clone_url = _build_clone_url(repo_url, token)
 
@@ -128,8 +129,8 @@ def clone_and_collect(
         if progress_callback:
             progress_callback("Cloning repository...", 10)
 
-        # Clone (shallow for speed)
-        Repo.clone_from(clone_url, clone_dir, depth=1)
+        # Shallow clone — depth=50 gives enough history for commit Q&A
+        git_repo = Repo.clone_from(clone_url, clone_dir, depth=50)
 
         if progress_callback:
             progress_callback("Scanning files...", 30)
@@ -175,7 +176,20 @@ def clone_and_collect(
         if progress_callback:
             progress_callback(f"Found {len(files)} indexable files", 100)
 
-        return clone_dir, files
+        # Extract recent commit history
+        commits: list[dict] = []
+        try:
+            for c in git_repo.iter_commits(max_count=50):
+                commits.append({
+                    "hash": c.hexsha[:8],
+                    "message": c.message.strip()[:200],
+                    "author": c.author.name,
+                    "date": c.authored_datetime.isoformat(),
+                })
+        except Exception:
+            pass
+
+        return clone_dir, files, commits
 
     except Exception as e:
         # Cleanup on error

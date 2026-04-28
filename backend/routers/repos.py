@@ -75,6 +75,7 @@ async def create_repo(body: RepoCreate):
         "summary": "",
         "keyModules": [],
         "mermaidDiagram": None,
+        "recentCommits": [],
         "chromaCollectionId": "",
         "error": None,
         "indexedAt": None,
@@ -119,7 +120,7 @@ async def _run_ingestion(repo_id: str, repo_url: str, github_token: str | None):
         def clone_progress(msg, pct):
             _update_progress(repo_id, "clone", "active", msg, pct)
 
-        clone_dir, files = await asyncio.to_thread(
+        clone_dir, files, recent_commits = await asyncio.to_thread(
             clone_and_collect, repo_url, github_token, clone_progress
         )
         _update_progress(repo_id, "clone", "done", f"Cloned — {len(files)} files found", 100)
@@ -198,12 +199,13 @@ async def _run_ingestion(repo_id: str, repo_url: str, github_token: str | None):
                         "filesIndexed": len(files),
                         "functionsFound": functions_found,
                         "chunksStored": total_stored,
-                        "commitsAnalysed": 0,
+                        "commitsAnalysed": len(recent_commits),
                     },
                     "languages": languages,
                     "summary": summary_text,
                     "keyModules": top_folders[:6],
                     "mermaidDiagram": mermaid_diagram,
+                    "recentCommits": recent_commits,
                     "chromaCollectionId": collection_name,
                     "indexedAt": datetime.now(timezone.utc),
                     "error": None,

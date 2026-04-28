@@ -4,6 +4,7 @@ Handles dependency graphs, issues, hotspots, and commit Q&A.
 """
 
 from fastapi import APIRouter, HTTPException  # type: ignore[import]
+from langchain_core.messages import HumanMessage  # type: ignore[import]
 from pydantic import BaseModel  # type: ignore[import]
 from bson import ObjectId  # type: ignore[import]
 
@@ -12,6 +13,8 @@ from services.ingestion.embedder import get_chroma_client  # type: ignore[import
 from services.analysis.dependency import build_dependency_graph  # type: ignore[import]
 from services.analysis.issues import detect_issues  # type: ignore[import]
 from services.analysis.hotspots import analyze_hotspots  # type: ignore[import]
+from services.rag.chain import query_repo, _get_llm  # type: ignore[import]
+from services.rag.prompts import COMMIT_QA_PROMPT  # type: ignore[import]
 
 
 router = APIRouter()
@@ -85,7 +88,7 @@ async def get_insights(repo_id: str):
 
 @router.post("/repos/{repo_id}/commit-qa")
 async def commit_qa(repo_id: str, body: CommitQARequest):
-    """Answer questions about commits using LLM."""
+    """Answer questions about commits using stored git history + LLM."""
     db = get_db()
 
     try:
@@ -96,17 +99,35 @@ async def commit_qa(repo_id: str, body: CommitQARequest):
     if not repo:
         raise HTTPException(status_code=404, detail="Repository not found")
 
-    # For now, use RAG to answer commit-related questions
-    from services.rag.chain import query_repo  # type: ignore[import]
+    recent_commits: list[dict] = repo.get("recentCommits", [])
 
+    if recent_commits:
+        # Use real commit history with COMMIT_QA_PROMPT
+        commits_text = "\n".join(
+            f"- [{c['hash']}] {c['date'][:10]} by {c['author']}: {c['message']}"
+            for c in recent_commits[:30]
+        )
+        prompt = COMMIT_QA_PROMPT.format(
+            repo_name=repo.get("name", ""),
+            question=body.query,
+            commits=commits_text,
+        )
+        llm = _get_llm()
+        if llm:
+            response = await llm.ainvoke([HumanMessage(content=prompt)])
+            return {
+                "answer": response.content,
+                "commits": recent_commits[:5],
+            }
+
+    # Fallback: answer from indexed code when no commit history is available
     collection_name = repo.get("chromaCollectionId", f"repo_{repo_id}")
     result = await query_repo(
         collection_name=collection_name,
         repo_name=repo.get("name", ""),
-        question=f"Based on the code: {body.query}",
+        question=body.query,
         top_k=5,
     )
-
     return {
         "answer": result["answer"],
         "commits": [],

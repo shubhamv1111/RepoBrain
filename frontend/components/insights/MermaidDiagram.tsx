@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Maximize2, X } from "lucide-react";
 
 interface MermaidDiagramProps {
   diagram: string | null;
 }
 
-export default function MermaidDiagram({ diagram }: MermaidDiagramProps) {
+function useMermaid(diagram: string | null, containerId: string) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [rendered, setRendered] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!diagram || !containerRef.current) return;
-
     let cancelled = false;
 
     const renderDiagram = async () => {
@@ -33,21 +31,33 @@ export default function MermaidDiagram({ diagram }: MermaidDiagramProps) {
           },
         });
 
-        const { svg } = await mermaid.render("mermaid-insights-" + Date.now(), diagram);
+        const { svg } = await mermaid.render(containerId + "-" + Date.now(), diagram);
         if (!cancelled && containerRef.current) {
           containerRef.current.innerHTML = svg;
           setRendered(true);
         }
       } catch {
         if (!cancelled && containerRef.current) {
-          containerRef.current.innerHTML = '<p style="color:#6b7280;font-size:12px">Failed to render diagram</p>';
+          containerRef.current.innerHTML =
+            '<p style="color:#6b7280;font-size:12px">Failed to render diagram</p>';
         }
       }
     };
 
     renderDiagram();
-    return () => { cancelled = true; };
-  }, [diagram]);
+    return () => {
+      cancelled = true;
+    };
+  }, [diagram, containerId]);
+
+  return { containerRef, rendered };
+}
+
+export default function MermaidDiagram({ diagram }: MermaidDiagramProps) {
+  const { containerRef, rendered } = useMermaid(diagram, "mermaid-inline");
+  const { containerRef: fullscreenRef } = useMermaid(diagram, "mermaid-fullscreen");
+  const [copied, setCopied] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
 
   const handleCopy = () => {
     if (diagram) {
@@ -68,20 +78,91 @@ export default function MermaidDiagram({ diagram }: MermaidDiagramProps) {
   }
 
   return (
-    <div>
-      <div ref={containerRef} className="overflow-auto" style={{ maxHeight: "200px" }} />
-      {rendered && (
-        <div className="flex justify-end mt-2">
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1 text-[11px] cursor-pointer"
-            style={{ color: "var(--rb-text-muted)" }}
+    <>
+      {/* Inline preview */}
+      <div>
+        <div ref={containerRef} className="overflow-auto" style={{ maxHeight: "200px" }} />
+        {rendered && (
+          <div className="flex items-center justify-between mt-2">
+            <button
+              onClick={() => setFullscreen(true)}
+              className="flex items-center gap-1 text-[11px] cursor-pointer"
+              style={{ color: "var(--rb-text-muted)" }}
+            >
+              <Maximize2 size={12} />
+              Expand
+            </button>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1 text-[11px] cursor-pointer"
+              style={{ color: "var(--rb-text-muted)" }}
+            >
+              {copied ? <Check size={12} /> : <Copy size={12} />}
+              {copied ? "Copied" : "Copy Mermaid syntax"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Fullscreen modal */}
+      {fullscreen && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col"
+          style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(4px)" }}
+          onClick={() => setFullscreen(false)}
+        >
+          <div
+            className="relative m-auto rounded-xl overflow-auto p-6"
+            style={{
+              background: "#09090b",
+              border: "1px solid #1e1e26",
+              maxWidth: "90vw",
+              maxHeight: "90vh",
+              width: "90vw",
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            {copied ? <Check size={12} /> : <Copy size={12} />}
-            {copied ? "Copied" : "Copy Mermaid syntax"}
-          </button>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-[13px]" style={{ color: "var(--rb-text-secondary)" }}>
+                  Architecture
+                </span>
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded"
+                  style={{ background: "#1e1432", color: "var(--rb-purple)" }}
+                >
+                  AI
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1 text-[11px] cursor-pointer"
+                  style={{ color: "var(--rb-text-muted)" }}
+                >
+                  {copied ? <Check size={12} /> : <Copy size={12} />}
+                  {copied ? "Copied" : "Copy Mermaid syntax"}
+                </button>
+                <button
+                  onClick={() => setFullscreen(false)}
+                  className="cursor-pointer p-1 rounded"
+                  style={{ color: "var(--rb-text-muted)" }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Full diagram */}
+            <div
+              ref={fullscreenRef}
+              className="overflow-auto"
+              style={{ maxHeight: "calc(90vh - 80px)" }}
+            />
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -12,6 +12,7 @@ venv/
 .venv/
 env/
 .env
+.env.sample
 .env.local
 .env.development.local
 .env.test.local
@@ -35,3 +36,4 @@ Thumbs.db
 
 
 Instructions
+RepoBrain-frontend-main
