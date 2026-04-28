@@ -3,7 +3,7 @@ RepoBrain — RAG Retriever
 Query ChromaDB for relevant code chunks.
 """
 
-from services.ingestion.embedder import get_chroma_client, get_embedding_model
+from services.ingestion.embedder import get_chroma_client, _embed_texts
 
 
 def retrieve_chunks(
@@ -18,15 +18,14 @@ def retrieve_chunks(
     { content, filePath, startLine, endLine, language, type, name, score }
     """
     client = get_chroma_client()
-    model = get_embedding_model()
 
     try:
         collection = client.get_collection(collection_name)
     except Exception:
         return []
 
-    # Embed the query (fastembed returns a generator of numpy arrays)
-    query_embedding = [next(iter(model.embed([query]))).tolist()]
+    # Embed the query via OpenAI API
+    query_embedding = _embed_texts([query])
 
     # Search ChromaDB
     results = collection.query(

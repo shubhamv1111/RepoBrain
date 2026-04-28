@@ -1,27 +1,37 @@
 """
 RepoBrain — Embedding Service
-Embeds code chunks using fastembed (ONNX-based) and stores them in ChromaDB.
-fastembed uses ONNX Runtime instead of PyTorch, keeping RAM well under 512 MB.
+Embeds code chunks via OpenAI text-embedding-3-small and stores in ChromaDB.
+Using the API means zero local ML model RAM — safe for Render's 512 MB tier.
 """
 from __future__ import annotations
 
 import uuid
 import chromadb
-from fastembed import TextEmbedding
+from openai import OpenAI
 
 from config import get_settings
 
 # ── Globals (loaded once) ────────────────────────────────────
-_model: TextEmbedding | None = None
+_openai_client: OpenAI | None = None
 _chroma_client: chromadb.PersistentClient | None = None
 
+EMBEDDING_MODEL = "text-embedding-3-small"
 
-def get_embedding_model() -> TextEmbedding:
-    """Load the embedding model (singleton)."""
-    global _model
-    if _model is None:
-        _model = TextEmbedding("sentence-transformers/all-MiniLM-L6-v2")
-    return _model
+
+def get_openai_client() -> OpenAI:
+    """Get or create the OpenAI client (singleton)."""
+    global _openai_client
+    if _openai_client is None:
+        settings = get_settings()
+        _openai_client = OpenAI(api_key=settings.openai_api_key)
+    return _openai_client
+
+
+def _embed_texts(texts: list[str]) -> list[list[float]]:
+    """Call OpenAI embeddings API and return a list of float vectors."""
+    client = get_openai_client()
+    response = client.embeddings.create(model=EMBEDDING_MODEL, input=texts)
+    return [item.embedding for item in response.data]
 
 
 def get_chroma_client() -> chromadb.PersistentClient:
@@ -53,7 +63,6 @@ def embed_chunks(
     Returns:
         (collection_name, total_stored) tuple
     """
-    model = get_embedding_model()
     client = get_chroma_client()
     collection_name = f"repo_{repo_id}"
 
@@ -95,8 +104,8 @@ def embed_chunks(
                 "name": chunk["name"],
             })
 
-        # Generate embeddings (fastembed returns a generator of numpy arrays)
-        embeddings = [vec.tolist() for vec in model.embed(texts)]
+        # Generate embeddings via OpenAI API
+        embeddings = _embed_texts(texts)
 
         # Store in ChromaDB
         collection.add(
