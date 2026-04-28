@@ -7,57 +7,54 @@ interface MermaidDiagramProps {
   diagram: string | null;
 }
 
-function useMermaid(diagram: string | null, containerId: string) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [rendered, setRendered] = useState(false);
+async function renderMermaid(diagram: string, container: HTMLDivElement, id: string) {
+  const mermaid = (await import("mermaid")).default;
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: "dark",
+    themeVariables: {
+      primaryColor: "#1e1e26",
+      primaryBorderColor: "#3b82f6",
+      primaryTextColor: "#f4f4f5",
+      lineColor: "#3b82f6",
+      fontFamily: "JetBrains Mono, monospace",
+      fontSize: "13px",
+    },
+  });
+  const { svg } = await mermaid.render(id, diagram);
+  container.innerHTML = svg;
+}
 
+export default function MermaidDiagram({ diagram }: MermaidDiagramProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const fullscreenRef = useRef<HTMLDivElement>(null);
+  const [rendered, setRendered] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+
+  // Render inline preview once on mount / diagram change
   useEffect(() => {
     if (!diagram || !containerRef.current) return;
     let cancelled = false;
 
-    const renderDiagram = async () => {
-      try {
-        const mermaid = (await import("mermaid")).default;
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: "dark",
-          themeVariables: {
-            primaryColor: "#1e1e26",
-            primaryBorderColor: "#3b82f6",
-            primaryTextColor: "#f4f4f5",
-            lineColor: "#3b82f6",
-            fontFamily: "JetBrains Mono, monospace",
-            fontSize: "12px",
-          },
-        });
-
-        const { svg } = await mermaid.render(containerId + "-" + Date.now(), diagram);
-        if (!cancelled && containerRef.current) {
-          containerRef.current.innerHTML = svg;
-          setRendered(true);
-        }
-      } catch {
+    renderMermaid(diagram, containerRef.current, "mermaid-inline-" + Date.now())
+      .then(() => { if (!cancelled) setRendered(true); })
+      .catch(() => {
         if (!cancelled && containerRef.current) {
           containerRef.current.innerHTML =
             '<p style="color:#6b7280;font-size:12px">Failed to render diagram</p>';
         }
-      }
-    };
+      });
 
-    renderDiagram();
-    return () => {
-      cancelled = true;
-    };
-  }, [diagram, containerId]);
+    return () => { cancelled = true; };
+  }, [diagram]);
 
-  return { containerRef, rendered };
-}
-
-export default function MermaidDiagram({ diagram }: MermaidDiagramProps) {
-  const { containerRef, rendered } = useMermaid(diagram, "mermaid-inline");
-  const { containerRef: fullscreenRef } = useMermaid(diagram, "mermaid-fullscreen");
-  const [copied, setCopied] = useState(false);
-  const [fullscreen, setFullscreen] = useState(false);
+  // When fullscreen opens, copy the already-rendered SVG — no second Mermaid call needed
+  useEffect(() => {
+    if (fullscreen && fullscreenRef.current && containerRef.current) {
+      fullscreenRef.current.innerHTML = containerRef.current.innerHTML;
+    }
+  }, [fullscreen]);
 
   const handleCopy = () => {
     if (diagram) {

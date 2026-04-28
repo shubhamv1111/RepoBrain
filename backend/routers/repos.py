@@ -16,13 +16,23 @@ from database import get_db
 from models.repo import RepoCreate
 from services.ingestion.cloner import clone_and_collect, cleanup_clone, parse_repo_url
 from services.ingestion.parser import parse_files
-from services.ingestion.embedder import embed_chunks
+from services.ingestion.embedder import embed_chunks, get_chroma_client
 from services.analysis.architecture import generate_architecture_diagram
 
 router = APIRouter()
 
 # ── In-memory job progress store (per repo) ──────────────────
 _job_progress: dict[str, list[dict]] = {}
+
+
+def _chroma_collection_has_data(collection_name: str) -> bool:
+    """Return True only if the ChromaDB collection exists AND contains documents."""
+    try:
+        client = get_chroma_client()
+        collection = client.get_collection(collection_name)
+        return collection.count() > 0
+    except Exception:
+        return False
 
 
 def _update_progress(repo_id: str, step: str, status: str, message: str, percent: int):
@@ -52,16 +62,28 @@ async def create_repo(body: RepoCreate):
     existing = await db.repos.find_one({"repoUrl": body.repoUrl, "status": "ready"})
     if existing:
         repo_id = str(existing["_id"])
-        # Pre-seed progress so the SSE endpoint can terminate immediately
-        _update_progress(repo_id, "clone", "done", "Already indexed", 100)
-        _update_progress(repo_id, "parse", "done", "Already indexed", 100)
-        _update_progress(repo_id, "embed", "done", "Already indexed", 100)
-        _update_progress(repo_id, "complete", "done", "Repository already indexed", 100)
-        return {
-            "repoId": repo_id,
-            "jobId": repo_id,
-            "message": "Repository already indexed",
-        }
+        collection_name = existing.get("chromaCollectionId") or f"repo_{repo_id}"
+
+        # Verify ChromaDB data is still on disk (ephemeral on Render — wiped on restart)
+        if _chroma_collection_has_data(collection_name):
+            # Data intact — fast-complete via SSE
+            _update_progress(repo_id, "clone", "done", "Already indexed", 100)
+            _update_progress(repo_id, "parse", "done", "Already indexed", 100)
+            _update_progress(repo_id, "embed", "done", "Already indexed", 100)
+            _update_progress(repo_id, "complete", "done", "Repository already indexed", 100)
+            return {
+                "repoId": repo_id,
+                "jobId": repo_id,
+                "message": "Repository already indexed",
+            }
+
+        # ChromaDB lost its data — reset status and re-run ingestion on the same repo
+        await db.repos.update_one(
+            {"_id": existing["_id"]},
+            {"$set": {"status": "pending", "error": None, "chromaCollectionId": ""}},
+        )
+        asyncio.create_task(_run_ingestion(repo_id, body.repoUrl, body.githubToken))
+        return {"repoId": repo_id, "jobId": repo_id}
 
     # Create repo document
     repo_doc = {
@@ -247,16 +269,19 @@ async def get_repo_status(repo_id: str):
         try:
             repo = await db.repos.find_one(
                 {"_id": ObjectId(repo_id)},
-                {"status": 1, "error": 1},
+                {"status": 1, "error": 1, "chromaCollectionId": 1},
             )
             if repo:
                 repo_status = repo.get("status", "")
                 if repo_status == "ready" and not _job_progress.get(repo_id):
-                    # Already done — emit synthetic complete sequence
-                    for step in ("clone", "parse", "embed"):
-                        yield f"data: {json.dumps({'step': step, 'status': 'done', 'message': 'Indexed', 'percent': 100})}\n\n"
-                    yield f"data: {json.dumps({'step': 'complete', 'status': 'done', 'message': 'Ready', 'percent': 100})}\n\n"
-                    return
+                    collection_name = repo.get("chromaCollectionId") or f"repo_{repo_id}"
+                    if _chroma_collection_has_data(collection_name):
+                        # Data intact — emit synthetic complete
+                        for step in ("clone", "parse", "embed"):
+                            yield f"data: {json.dumps({'step': step, 'status': 'done', 'message': 'Indexed', 'percent': 100})}\n\n"
+                        yield f"data: {json.dumps({'step': 'complete', 'status': 'done', 'message': 'Ready', 'percent': 100})}\n\n"
+                        return
+                    # ChromaDB wiped — let the streaming path wait for re-ingestion
                 if repo_status == "failed" and not _job_progress.get(repo_id):
                     error_msg = repo.get("error", "Ingestion failed")
                     yield f"data: {json.dumps({'step': 'error', 'status': 'failed', 'message': error_msg, 'percent': 0})}\n\n"
