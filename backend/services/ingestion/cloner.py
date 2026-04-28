@@ -129,8 +129,8 @@ def clone_and_collect(
         if progress_callback:
             progress_callback("Cloning repository...", 10)
 
-        # Shallow clone — depth=50 gives enough history for commit Q&A
-        git_repo = Repo.clone_from(clone_url, clone_dir, depth=50)
+        # Shallow clone — depth=20 balances speed vs commit Q&A history
+        git_repo = Repo.clone_from(clone_url, clone_dir, depth=20)
 
         if progress_callback:
             progress_callback("Scanning files...", 30)
@@ -179,7 +179,7 @@ def clone_and_collect(
         # Extract recent commit history
         commits: list[dict] = []
         try:
-            for c in git_repo.iter_commits(max_count=50):
+            for c in git_repo.iter_commits(max_count=20):
                 commits.append({
                     "hash": c.hexsha[:8],
                     "message": c.message.strip()[:200],

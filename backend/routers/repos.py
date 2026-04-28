@@ -51,9 +51,15 @@ async def create_repo(body: RepoCreate):
     # Check if already indexed
     existing = await db.repos.find_one({"repoUrl": body.repoUrl, "status": "ready"})
     if existing:
+        repo_id = str(existing["_id"])
+        # Pre-seed progress so the SSE endpoint can terminate immediately
+        _update_progress(repo_id, "clone", "done", "Already indexed", 100)
+        _update_progress(repo_id, "parse", "done", "Already indexed", 100)
+        _update_progress(repo_id, "embed", "done", "Already indexed", 100)
+        _update_progress(repo_id, "complete", "done", "Repository already indexed", 100)
         return {
-            "repoId": str(existing["_id"]),
-            "jobId": str(existing["_id"]),
+            "repoId": repo_id,
+            "jobId": repo_id,
             "message": "Repository already indexed",
         }
 
@@ -233,19 +239,51 @@ async def get_repo_status(repo_id: str):
     """SSE stream for ingestion progress."""
 
     async def event_generator() -> AsyncGenerator[str, None]:
+        db = get_db()
+
+        # ── Fast-path: check MongoDB first ───────────────────
+        # Handles server restarts (in-memory _job_progress wiped) or
+        # repos that were already indexed in a prior run.
+        try:
+            repo = await db.repos.find_one(
+                {"_id": ObjectId(repo_id)},
+                {"status": 1, "error": 1},
+            )
+            if repo:
+                repo_status = repo.get("status", "")
+                if repo_status == "ready" and not _job_progress.get(repo_id):
+                    # Already done — emit synthetic complete sequence
+                    for step in ("clone", "parse", "embed"):
+                        yield f"data: {json.dumps({'step': step, 'status': 'done', 'message': 'Indexed', 'percent': 100})}\n\n"
+                    yield f"data: {json.dumps({'step': 'complete', 'status': 'done', 'message': 'Ready', 'percent': 100})}\n\n"
+                    return
+                if repo_status == "failed" and not _job_progress.get(repo_id):
+                    error_msg = repo.get("error", "Ingestion failed")
+                    yield f"data: {json.dumps({'step': 'error', 'status': 'failed', 'message': error_msg, 'percent': 0})}\n\n"
+                    return
+        except Exception:
+            pass
+
+        # ── Streaming path: relay in-memory progress events ──
         last_index = 0
-        while True:
+        elapsed = 0.0
+        max_wait = 300  # 5-minute hard cap — prevents infinite hangs
+
+        while elapsed < max_wait:
             events = _job_progress.get(repo_id, [])
             while last_index < len(events):
                 event = events[last_index]
                 yield f"data: {json.dumps(event)}\n\n"
                 last_index += 1
 
-                # Stop streaming when complete or failed
                 if event.get("step") in ("complete", "error"):
                     return
 
             await asyncio.sleep(0.5)
+            elapsed += 0.5
+
+        # Timeout — emit an error event so the frontend can react
+        yield f"data: {json.dumps({'step': 'error', 'status': 'failed', 'message': 'Indexing timed out. Please try again.', 'percent': 0})}\n\n"
 
     return StreamingResponse(
         event_generator(),

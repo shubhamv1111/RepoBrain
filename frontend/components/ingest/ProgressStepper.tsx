@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Loader2, X } from "lucide-react";
 import type { JobStep, JobStepStatus } from "@/types";
 
@@ -11,10 +11,29 @@ interface ProgressStepperProps {
 }
 
 const STEP_LABELS: Record<string, string> = {
-  clone: "Clone",
-  parse: "Parse",
-  embed: "Embed",
+  clone: "Syncing",
+  parse: "Analyzing",
+  embed: "Indexing",
 };
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+/** Poll repo status every N ms as a fallback when SSE drops or is blocked. */
+async function pollRepoStatus(repoId: string): Promise<"ready" | "failed" | "pending"> {
+  try {
+    const res = await fetch(`${API_BASE}/api/repos/${repoId}/overview`, {
+      credentials: "include",
+    });
+    if (!res.ok) return "pending";
+    const data = await res.json();
+    const status = data?.status ?? "";
+    if (status === "ready") return "ready";
+    if (status === "failed") return "failed";
+  } catch {
+    // Network error — keep waiting
+  }
+  return "pending";
+}
 
 export default function ProgressStepper({
   repoId,
@@ -27,47 +46,58 @@ export default function ProgressStepper({
     { name: "embed", status: "pending", message: "", percent: 0 },
   ]);
   const [error, setError] = useState("");
+  const doneRef = useRef(false);
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const eventSource = new EventSource(`${apiUrl}/api/repos/${repoId}/status`);
+    const eventSource = new EventSource(`${API_BASE}/api/repos/${repoId}/status`);
+
+    const handleDone = () => {
+      if (doneRef.current) return;
+      doneRef.current = true;
+      eventSource.close();
+      onComplete?.();
+    };
+
+    const handleFail = (msg: string) => {
+      if (doneRef.current) return;
+      doneRef.current = true;
+      eventSource.close();
+      setError(msg);
+      onError?.(msg);
+    };
 
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
 
-        if (data.step === "complete") {
-          eventSource.close();
-          onComplete?.();
-          return;
-        }
-
-        if (data.step === "error") {
-          eventSource.close();
-          setError(data.message);
-          onError?.(data.message);
-          return;
-        }
+        if (data.step === "complete") { handleDone(); return; }
+        if (data.step === "error") { handleFail(data.message); return; }
 
         setSteps((prev) =>
           prev.map((s) =>
             s.name === data.step
-              ? {
-                  ...s,
-                  status: data.status as JobStepStatus,
-                  message: data.message,
-                  percent: data.percent,
-                }
+              ? { ...s, status: data.status as JobStepStatus, message: data.message, percent: data.percent }
               : s
           )
         );
       } catch {
-        // Ignore parse errors
+        // ignore parse errors
       }
     };
 
+    // When SSE drops (e.g. Cloudflare proxy timeout), fall back to polling
     eventSource.onerror = () => {
       eventSource.close();
+      if (doneRef.current) return;
+
+      const pollId = setInterval(async () => {
+        const status = await pollRepoStatus(repoId);
+        if (status === "ready") { clearInterval(pollId); handleDone(); }
+        if (status === "failed") { clearInterval(pollId); handleFail("Indexing failed. Please try again."); }
+      }, 3000);
+
+      // Clean up poll after 10 minutes max
+      setTimeout(() => clearInterval(pollId), 600_000);
     };
 
     return () => eventSource.close();
