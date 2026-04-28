@@ -6,12 +6,6 @@ Uses tree-sitter to extract functions, classes, and code chunks with line ranges
 import re
 from typing import Optional
 
-# Languages supported by tree-sitter for function/class extraction
-TREE_SITTER_LANGUAGES = {
-    "python", "javascript", "typescript", "java", "go",
-    "rust", "ruby", "php", "c", "cpp", "csharp",
-}
-
 
 def _chunk_by_lines(content: str, chunk_size: int = 60) -> list[dict]:
     """Split content into line-based chunks for files without AST support."""

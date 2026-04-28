@@ -140,7 +140,7 @@ async def _run_ingestion(repo_id: str, repo_url: str, github_token: str | None):
             {"_id": ObjectId(repo_id)},
             {"$set": {"status": "parsing"}},
         )
-        _update_progress(repo_id, "parse", "active", "Parsing with tree-sitter...", 0)
+        _update_progress(repo_id, "parse", "active", "Parsing files...", 0)
 
         def parse_progress(msg, pct):
             _update_progress(repo_id, "parse", "active", msg, pct)
