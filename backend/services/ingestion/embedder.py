@@ -1,25 +1,26 @@
 """
 RepoBrain — Embedding Service
-Embeds code chunks using sentence-transformers and stores them in ChromaDB.
+Embeds code chunks using fastembed (ONNX-based) and stores them in ChromaDB.
+fastembed uses ONNX Runtime instead of PyTorch, keeping RAM well under 512 MB.
 """
 from __future__ import annotations
 
 import uuid
 import chromadb
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 
 from config import get_settings
 
 # ── Globals (loaded once) ────────────────────────────────────
-_model: SentenceTransformer | None = None
+_model: TextEmbedding | None = None
 _chroma_client: chromadb.PersistentClient | None = None
 
 
-def get_embedding_model() -> SentenceTransformer:
+def get_embedding_model() -> TextEmbedding:
     """Load the embedding model (singleton)."""
     global _model
     if _model is None:
-        _model = SentenceTransformer("all-MiniLM-L6-v2")
+        _model = TextEmbedding("sentence-transformers/all-MiniLM-L6-v2")
     return _model
 
 
@@ -94,8 +95,8 @@ def embed_chunks(
                 "name": chunk["name"],
             })
 
-        # Generate embeddings
-        embeddings = model.encode(texts).tolist()
+        # Generate embeddings (fastembed returns a generator of numpy arrays)
+        embeddings = [vec.tolist() for vec in model.embed(texts)]
 
         # Store in ChromaDB
         collection.add(

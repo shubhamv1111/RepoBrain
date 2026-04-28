@@ -25,8 +25,8 @@ def retrieve_chunks(
     except Exception:
         return []
 
-    # Embed the query
-    query_embedding = model.encode([query]).tolist()
+    # Embed the query (fastembed returns a generator of numpy arrays)
+    query_embedding = [next(iter(model.embed([query]))).tolist()]
 
     # Search ChromaDB
     results = collection.query(
