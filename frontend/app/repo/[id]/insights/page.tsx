@@ -54,28 +54,6 @@ export default function InsightsPage() {
       <div className="flex gap-4" style={{ minHeight: "calc(100vh - 200px)" }}>
         {/* LEFT — 55% */}
         <div className="space-y-4" style={{ flex: "0 0 55%" }}>
-          {/* Dependency Graph */}
-          <div
-            className="rounded-lg overflow-hidden"
-            style={{
-              background: "var(--rb-bg-card)",
-              border: "1px solid var(--rb-border)",
-              height: "380px",
-            }}
-          >
-            <div className="flex items-center gap-2 px-5 pt-4 pb-2">
-              <span className="text-[12px]" style={{ color: "var(--rb-text-secondary)" }}>
-                Dependency Graph
-              </span>
-              <span className="text-[11px]" style={{ color: "var(--rb-text-muted)" }}>
-                click to explore
-              </span>
-            </div>
-            <div style={{ height: "calc(100% - 40px)" }}>
-              <DependencyGraph graph={data.dependencyGraph} />
-            </div>
-          </div>
-
           {/* Architecture Diagram */}
           <div
             className="p-5 rounded-lg"
@@ -94,11 +72,27 @@ export default function InsightsPage() {
               >
                 AI
               </span>
-              <span className="text-[10px]" style={{ color: "var(--rb-text-muted)" }}>
-                click to expand
-              </span>
             </div>
             <MermaidDiagram diagram={data.mermaidDiagram} />
+          </div>
+
+          {/* Dependency Graph */}
+          <div
+            className="rounded-lg overflow-hidden"
+            style={{
+              background: "var(--rb-bg-card)",
+              border: "1px solid var(--rb-border)",
+              height: "380px",
+            }}
+          >
+            <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+              <span className="text-[12px]" style={{ color: "var(--rb-text-secondary)" }}>
+                Dependency Graph
+              </span>
+            </div>
+            <div style={{ height: "calc(100% - 40px)" }}>
+              <DependencyGraph graph={data.dependencyGraph} />
+            </div>
           </div>
         </div>
 

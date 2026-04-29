@@ -12,6 +12,35 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+const controlsStyle = `
+  .react-flow__controls {
+    background: #1a1a24 !important;
+    border: 1px solid #3b82f6 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 12px rgba(59,130,246,0.25) !important;
+    overflow: hidden;
+  }
+  .react-flow__controls-button {
+    background: #1a1a24 !important;
+    border-bottom: 1px solid #2a2a3a !important;
+    color: #e2e8f0 !important;
+    fill: #e2e8f0 !important;
+    width: 28px !important;
+    height: 28px !important;
+    transition: background 0.15s, fill 0.15s;
+  }
+  .react-flow__controls-button:hover {
+    background: #2d3a5a !important;
+    fill: #60a5fa !important;
+  }
+  .react-flow__controls-button:last-child {
+    border-bottom: none !important;
+  }
+  .react-flow__controls-button svg {
+    fill: inherit !important;
+  }
+`;
+
 import type { DependencyGraph as DependencyGraphType } from "@/types";
 
 interface DependencyGraphProps {
@@ -79,6 +108,7 @@ export default function DependencyGraph({ graph }: DependencyGraphProps) {
 
   return (
     <div className="relative h-full">
+      <style>{controlsStyle}</style>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -91,14 +121,7 @@ export default function DependencyGraph({ graph }: DependencyGraphProps) {
         style={{ background: "#09090b" }}
       >
         <Background color="#1e1e26" gap={20} size={1} />
-        <Controls
-          showInteractive={false}
-          style={{
-            background: "#111116",
-            border: "1px solid #1e1e26",
-            borderRadius: "6px",
-          }}
-        />
+        <Controls showInteractive={false} />
       </ReactFlow>
 
       {/* Tooltip */}

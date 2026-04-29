@@ -18,10 +18,16 @@ interface SessionSidebarProps {
 
 function timeAgo(dateStr: string): string {
   if (!dateStr) return "";
-  const ms = Date.now() - new Date(dateStr).getTime();
+  // Ensure the string is treated as UTC: append 'Z' only if no tz offset is present
+  const normalized =
+    dateStr.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(dateStr)
+      ? dateStr
+      : dateStr + "Z";
+  const ms = Date.now() - new Date(normalized).getTime();
   if (ms < 0) return "just now";
-  const mins = Math.floor(ms / 60_000);
-  if (mins < 1) return "just now";
+  const secs = Math.floor(ms / 1_000);
+  if (secs < 60) return `${secs}s ago`;
+  const mins = Math.floor(secs / 60);
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
@@ -31,11 +37,11 @@ function timeAgo(dateStr: string): string {
   return `${months}mo ago`;
 }
 
-/** Ticks every minute so relative timestamps stay fresh while the page is open. */
+/** Ticks every 30 seconds so relative timestamps stay fresh while the page is open. */
 function useClock() {
   const [, setTick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 60_000);
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
     return () => clearInterval(id);
   }, []);
 }
