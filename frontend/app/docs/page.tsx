@@ -93,11 +93,11 @@ const sections = [
     items: [
       {
         heading: "OpenAI (default)",
-        body: "Set OPENAI_API_KEY in your backend .env. RepoBrain uses gpt-4o for answers and text-embedding-3-small for vector embeddings.",
+        body: "Set OPENAI_API_KEY. Chat via OPENAI_MODEL (default: gpt-4o-mini). Embeddings via OPENAI_EMBEDDING_MODEL (default: text-embedding-3-small).",
       },
       {
-        heading: "Groq (fallback / alternative)",
-        body: "Set GROQ_API_KEY to use llama-3.1-8b-instant instead. Groq is free-tier friendly and significantly faster, at the cost of some reasoning depth. You can switch the active model from the Settings page.",
+        heading: "OpenRouter",
+        body: "Set OPENROUTER_API_KEY. Gemini via OPENROUTER_MODEL=google/gemini-2.5-flash-lite.",
       },
     ],
   },

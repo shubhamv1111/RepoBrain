@@ -15,7 +15,8 @@ from config import get_settings
 _openai_client: OpenAI | None = None
 _chroma_client: chromadb.PersistentClient | None = None
 
-EMBEDDING_MODEL = "text-embedding-3-small"
+def _embedding_model() -> str:
+    return get_settings().openai_embedding_model
 
 
 def get_openai_client() -> OpenAI:
@@ -30,7 +31,7 @@ def get_openai_client() -> OpenAI:
 def _embed_texts(texts: list[str]) -> list[list[float]]:
     """Call OpenAI embeddings API and return a list of float vectors."""
     client = get_openai_client()
-    response = client.embeddings.create(model=EMBEDDING_MODEL, input=texts)
+    response = client.embeddings.create(model=_embedding_model(), input=texts)
     return [item.embedding for item in response.data]
 
 

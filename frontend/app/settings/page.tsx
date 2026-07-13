@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { useAppStore, initModelPreference, type ModelPreference } from "@/lib/store";
-import { Settings, Cpu, Zap, CheckCircle2 } from "lucide-react";
+import { Settings, Cpu, CheckCircle2 } from "lucide-react";
 
 interface ModelOption {
   id: ModelPreference;
@@ -19,22 +19,34 @@ interface ModelOption {
 const MODEL_OPTIONS: ModelOption[] = [
   {
     id: "openai",
-    label: "OpenAI GPT-4o",
-    description: "Best reasoning, detailed code explanations, and accurate citations. Requires an OPENAI_API_KEY in the server environment.",
+    label: "OpenAI GPT-4o mini",
+    description:
+      "Default — direct OpenAI API. Set OPENAI_API_KEY and OPENAI_MODEL in .env. Also powers embeddings.",
     badge: "Default",
     badgeColor: "#3b82f6",
     icon: <Cpu className="w-5 h-5" />,
-    pros: ["Most accurate answers", "Best code comprehension", "Detailed citations"],
+    pros: ["Best reasoning", "Best citations", "Embeddings provider"],
   },
   {
-    id: "groq",
-    label: "Groq · Llama 3.1 8B",
-    description: "Ultra-fast inference with near-zero latency. Great for quick lookups. Requires a GROQ_API_KEY in the server environment.",
-    badge: "Fast",
-    badgeColor: "#8b5cf6",
-    icon: <Zap className="w-5 h-5" />,
-    pros: ["Fastest responses", "Free-tier friendly", "Low latency"],
+    id: "openrouter",
+    label: "OpenRouter · Gemini Flash-Lite",
+    description:
+      "Gemini via OpenRouter. Set OPENROUTER_API_KEY and OPENROUTER_MODEL (google/gemini-2.5-flash-lite).",
+    badge: "Alt",
+    badgeColor: "#f59e0b",
+    icon: <Settings className="w-5 h-5" />,
+    pros: ["Gemini Flash-Lite", "Custom model via .env", "Unified API"],
   },
+  // Groq disabled for now — re-enable when needed
+  // {
+  //   id: "groq",
+  //   label: "Groq · Llama 3.1 8B",
+  //   description: "Ultra-fast inference. Requires GROQ_API_KEY.",
+  //   badge: "Fast",
+  //   badgeColor: "#8b5cf6",
+  //   icon: <Zap className="w-5 h-5" />,
+  //   pros: ["Fastest responses", "Free tier"],
+  // },
 ];
 
 export default function SettingsPage() {

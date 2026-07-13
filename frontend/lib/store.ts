@@ -1,14 +1,17 @@
 import { create } from "zustand";
 import type { Repo, ChatSession } from "@/types";
+import { getRecentRepos } from "@/lib/api";
 
-export type ModelPreference = "openai" | "groq";
+export type ModelPreference = "openrouter" | "openai";
 
 const MODEL_STORAGE_KEY = "repobrain_model_preference";
 
 function loadModelPreference(): ModelPreference {
   if (typeof window === "undefined") return "openai";
   const stored = localStorage.getItem(MODEL_STORAGE_KEY);
-  return stored === "groq" ? "groq" : "openai";
+  if (stored === "openrouter") return "openrouter";
+  // default + legacy values → openai
+  return "openai";
 }
 
 interface AppState {
@@ -19,6 +22,7 @@ interface AppState {
   // ─── Recent repos (sidebar) ───────────────────────────────
   recentRepos: Repo[];
   addRecentRepo: (repo: Repo) => void;
+  setRecentRepos: (repos: Repo[]) => void;
 
   // ─── Active chat session ──────────────────────────────────
   activeSession: ChatSession | null;
@@ -45,6 +49,8 @@ export const useAppStore = create<AppState>((set) => ({
       return { recentRepos: [repo, ...filtered].slice(0, 5) };
     }),
 
+  setRecentRepos: (repos) => set({ recentRepos: repos.slice(0, 10) }),
+
   activeSession: null,
   setActiveSession: (session) => set({ activeSession: session }),
 
@@ -65,4 +71,14 @@ export const useAppStore = create<AppState>((set) => ({
 export function initModelPreference() {
   const model = loadModelPreference();
   useAppStore.setState({ preferredModel: model });
+}
+
+/** Load recent repos from MongoDB (survives logout / page refresh). */
+export async function loadRecentRepos() {
+  try {
+    const res = await getRecentRepos(10);
+    useAppStore.getState().setRecentRepos(res.data.repos);
+  } catch (error) {
+    console.error("Failed to load recent repos:", error);
+  }
 }

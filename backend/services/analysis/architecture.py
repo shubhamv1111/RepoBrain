@@ -6,11 +6,9 @@ Uses LLM to generate a Mermaid flowchart of the repository's architecture.
 import re
 from typing import Optional
 
-from langchain_openai import ChatOpenAI
-from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
 
-from config import get_settings
+from services.llm.client import get_llm
 
 ARCHITECTURE_PROMPT = """
 You are a software architect. Based on the repository structure and summary below,
@@ -36,7 +34,7 @@ flowchart TD
     B --> C[LangChain RAG]
     B --> D[GitHub API]
     C --> E[ChromaDB]
-    C --> F[OpenAI GPT-4o]
+    C --> F[Gemini Flash-Lite]
     B --> G[MongoDB Atlas]
 """
 
@@ -56,29 +54,6 @@ def _clean_mermaid_output(text: str) -> str:
     return text.strip()
 
 
-def _get_llm():
-    """Get the LLM client — OpenAI primary, Groq fallback."""
-    settings = get_settings()
-
-    if settings.openai_api_key:
-        return ChatOpenAI(
-            model="gpt-4o",
-            api_key=settings.openai_api_key,
-            temperature=0.2,
-            max_tokens=500,
-        )
-
-    if settings.groq_api_key:
-        return ChatGroq(
-            model="llama-3.1-8b-instant",
-            api_key=settings.groq_api_key,
-            temperature=0.2,
-            max_tokens=500,
-        )
-
-    return None
-
-
 async def generate_architecture_diagram(
     repo_name: str,
     summary: str,
@@ -91,7 +66,7 @@ async def generate_architecture_diagram(
 
     Returns the mermaid string or None on failure.
     """
-    llm = _get_llm()
+    llm = get_llm(temperature=0.2, max_tokens=500)
     if not llm:
         return DEFAULT_FALLBACK_DIAGRAM.strip()
 

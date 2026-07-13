@@ -25,6 +25,41 @@ router = APIRouter()
 _job_progress: dict[str, list[dict]] = {}
 
 
+def _serialize_repo(doc: dict) -> dict:
+    """Map a MongoDB repo document to the frontend Repo shape."""
+    indexed_at = doc.get("indexedAt")
+    created_at = doc.get("createdAt")
+    return {
+        "_id": str(doc["_id"]),
+        "repoUrl": doc.get("repoUrl", ""),
+        "owner": doc.get("owner", ""),
+        "name": doc.get("name", ""),
+        "ownerId": doc.get("ownerId"),
+        "isPublic": doc.get("isPublic", True),
+        "status": doc.get("status", "pending"),
+        "metrics": doc.get("metrics", {}),
+        "languages": doc.get("languages", []),
+        "summary": doc.get("summary", ""),
+        "keyModules": doc.get("keyModules", []),
+        "mermaidDiagram": doc.get("mermaidDiagram"),
+        "chromaCollectionId": doc.get("chromaCollectionId", ""),
+        "error": doc.get("error"),
+        "indexedAt": indexed_at.isoformat() if indexed_at else "",
+        "createdAt": created_at.isoformat() if created_at else "",
+    }
+
+
+@router.get("/repos")
+async def list_repos(limit: int = 10):
+    """List recently indexed repositories (newest first)."""
+    db = get_db()
+    limit = max(1, min(limit, 50))
+
+    cursor = db.repos.find().sort("createdAt", -1).limit(limit)
+    repos = [_serialize_repo(doc) async for doc in cursor]
+    return {"repos": repos}
+
+
 def _chroma_collection_has_data(collection_name: str) -> bool:
     """Return True only if the ChromaDB collection exists AND contains documents."""
     try:

@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { Repo } from "@/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -11,6 +12,9 @@ const api = axios.create({
 });
 
 // ─── Ingestion ──────────────────────────────────────────────
+export const getRecentRepos = (limit = 10) =>
+  api.get<{ repos: Repo[] }>("/repos", { params: { limit } });
+
 export const ingestRepo = (repoUrl: string, githubToken?: string) =>
   api.post("/repos", { repoUrl, githubToken });
 
