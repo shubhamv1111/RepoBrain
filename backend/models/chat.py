@@ -43,7 +43,7 @@ class QueryRequest(BaseModel):
     query: str
     sessionId: Optional[str] = None
     topK: int = 5
-    model: Optional[str] = None  # "openrouter" | "openai" — None = DEFAULT_LLM
+    model: Optional[str] = None  # "openrouter" | "openai" — both via OpenRouter; None = DEFAULT_LLM
 
 
 class QueryResponse(BaseModel):

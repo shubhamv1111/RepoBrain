@@ -74,7 +74,7 @@ async def query_repo(
     llm = _get_llm(model)
     if not llm:
         return {
-            "answer": "No LLM API key configured. Set OPENROUTER_API_KEY or OPENAI_API_KEY.",
+            "answer": "No LLM API key configured. Set OPENROUTER_API_KEY in the server environment.",
             "citations": [],
             "sources": [
                 {

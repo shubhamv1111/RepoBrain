@@ -92,12 +92,12 @@ const sections = [
     color: "#ef4444",
     items: [
       {
-        heading: "OpenAI (default)",
-        body: "Set OPENAI_API_KEY. Chat via OPENAI_MODEL (default: gpt-4o-mini). Embeddings via OPENAI_EMBEDDING_MODEL (default: text-embedding-3-small).",
+        heading: "OpenRouter (all models)",
+        body: "Set OPENROUTER_API_KEY once. Chat: OPENAI_MODEL=openai/gpt-4o-mini (default) or OPENROUTER_MODEL=google/gemini-2.5-flash-lite. Embeddings: OPENAI_EMBEDDING_MODEL=openai/text-embedding-3-small.",
       },
       {
-        heading: "OpenRouter",
-        body: "Set OPENROUTER_API_KEY. Gemini via OPENROUTER_MODEL=google/gemini-2.5-flash-lite.",
+        heading: "Switch default model",
+        body: "Change DEFAULT_LLM and DEFAULT_CHAT_MODEL in backend .env. Default is OpenAI GPT-4o mini via OpenRouter.",
       },
     ],
   },

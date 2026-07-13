@@ -21,21 +21,21 @@ const MODEL_OPTIONS: ModelOption[] = [
     id: "openai",
     label: "OpenAI GPT-4o mini",
     description:
-      "Default — direct OpenAI API. Set OPENAI_API_KEY and OPENAI_MODEL in .env. Also powers embeddings.",
+      "Default — OpenAI model via OpenRouter. Set OPENROUTER_API_KEY and OPENAI_MODEL=openai/gpt-4o-mini.",
     badge: "Default",
     badgeColor: "#3b82f6",
     icon: <Cpu className="w-5 h-5" />,
-    pros: ["Best reasoning", "Best citations", "Embeddings provider"],
+    pros: ["Best reasoning", "Best citations", "Via OpenRouter"],
   },
   {
     id: "openrouter",
-    label: "OpenRouter · Gemini Flash-Lite",
+    label: "Google Gemini Flash-Lite",
     description:
-      "Gemini via OpenRouter. Set OPENROUTER_API_KEY and OPENROUTER_MODEL (google/gemini-2.5-flash-lite).",
+      "Gemini via OpenRouter. Set OPENROUTER_MODEL=google/gemini-2.5-flash-lite.",
     badge: "Alt",
     badgeColor: "#f59e0b",
     icon: <Settings className="w-5 h-5" />,
-    pros: ["Gemini Flash-Lite", "Custom model via .env", "Unified API"],
+    pros: ["Gemini Flash-Lite", "Lower cost", "Same OpenRouter key"],
   },
   // Groq disabled for now — re-enable when needed
   // {
@@ -74,9 +74,8 @@ export default function SettingsPage() {
             <div className="mb-4">
               <h2 className="text-base font-semibold text-slate-100 mb-1">AI Model</h2>
               <p className="text-sm text-slate-400">
-                Choose which LLM powers Chat and Commit Q&amp;A. The server must have the
-                corresponding API key configured; if the key is missing the server will fall back
-                to whichever key is available.
+                Choose which LLM powers Chat and Commit Q&amp;A. Both options use
+                OpenRouter — only OPENROUTER_API_KEY is required on the server.
               </p>
             </div>
 

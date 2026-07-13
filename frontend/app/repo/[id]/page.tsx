@@ -20,42 +20,89 @@ export default function RepoOverviewPage() {
 
   const [data, setData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [indexing, setIndexing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const setCurrentRepo = useAppStore((s) => s.setCurrentRepo);
   const addRecentRepo = useAppStore((s) => s.addRecentRepo);
 
   useEffect(() => {
-    getRepoOverview(repoId)
-      .then((res) => {
-        setData(res.data);
-        if (res.data.repo) {
-          const repo = {
-            _id: res.data.repo.id,
-            repoUrl: res.data.repo.repoUrl,
-            owner: res.data.repo.owner,
-            name: res.data.repo.name,
-            status: res.data.repo.status as OverviewData["repo"]["status"],
-            isPublic: true,
-            ownerId: null,
-            metrics: res.data.metrics,
-            languages: res.data.languages,
-            summary: res.data.summary,
-            keyModules: res.data.keyModules,
-            mermaidDiagram: res.data.mermaidDiagram,
-            chromaCollectionId: "",
-            error: null,
-            indexedAt: "",
-            createdAt: "",
+    let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const loadOverview = () => {
+      setError(null);
+      getRepoOverview(repoId)
+        .then((res) => {
+          if (cancelled) return;
+          setIndexing(false);
+          setData(res.data);
+          if (res.data.repo) {
+            const repo = {
+              _id: res.data.repo.id,
+              repoUrl: res.data.repo.repoUrl,
+              owner: res.data.repo.owner,
+              name: res.data.repo.name,
+              status: res.data.repo.status as OverviewData["repo"]["status"],
+              isPublic: true,
+              ownerId: null,
+              metrics: res.data.metrics,
+              languages: res.data.languages,
+              summary: res.data.summary,
+              keyModules: res.data.keyModules,
+              mermaidDiagram: res.data.mermaidDiagram,
+              chromaCollectionId: "",
+              error: null,
+              indexedAt: "",
+              createdAt: "",
+            };
+            setCurrentRepo(repo);
+            addRecentRepo(repo);
+          }
+        })
+        .catch((err: unknown) => {
+          if (cancelled) return;
+          const axiosErr = err as {
+            response?: { status?: number; data?: { detail?: string } };
           };
-          setCurrentRepo(repo);
-          addRecentRepo(repo);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+          const detail = axiosErr.response?.data?.detail ?? "";
+          const status = axiosErr.response?.status;
+
+          if (
+            status === 400 &&
+            typeof detail === "string" &&
+            detail.toLowerCase().includes("not ready")
+          ) {
+            setIndexing(true);
+            setData(null);
+            retryTimer = setTimeout(loadOverview, 3000);
+            return;
+          }
+
+          setIndexing(false);
+          if (status === 404) {
+            setError("Repository not found.");
+          } else if (typeof detail === "string" && detail) {
+            setError(detail);
+          } else {
+            setError("Failed to load repository. Check that the backend is running.");
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    };
+
+    setLoading(true);
+    loadOverview();
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
   }, [repoId, setCurrentRepo, addRecentRepo]);
 
-  if (loading) {
+  if (loading && !indexing) {
     return (
       <div className="p-7 space-y-4">
         <div className="skeleton h-8 w-48" />
@@ -69,10 +116,26 @@ export default function RepoOverviewPage() {
     );
   }
 
+  if (indexing) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
+        <RefreshCw className="w-6 h-6 animate-spin" style={{ color: "var(--rb-text-muted)" }} />
+        <p style={{ color: "var(--rb-text-muted)" }}>Indexing repository…</p>
+      </div>
+    );
+  }
+
   if (!data) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <p style={{ color: "var(--rb-text-muted)" }}>Repository not found</p>
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
+        <p style={{ color: "var(--rb-text-muted)" }}>{error ?? "Repository not found"}</p>
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="text-sm text-primary hover:underline"
+        >
+          Go home
+        </button>
       </div>
     );
   }

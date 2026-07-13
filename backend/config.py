@@ -16,18 +16,18 @@ class Settings(BaseSettings):
     chroma_persist_dir: str = "./chroma_store"
 
     # ── LLM API Keys ────────────────────────────────────────
-    openai_api_key: str = ""
+    # All chat + embeddings go through OpenRouter (single key).
     openrouter_api_key: str = ""
-    # gemini_api_key: str = ""  # optional — direct Gemini API (not used currently)
+    # openai_api_key: str = ""  # disabled — direct OpenAI not used
     # groq_api_key: str = ""    # disabled for now
 
-    # ── LLM model slugs (override per provider) ─────────────
+    # ── LLM model slugs (OpenRouter format: provider/model) ─
     # DEFAULT_LLM + DEFAULT_CHAT_MODEL = main knobs to change default chat model
-    default_llm: str = "openai"  # openai | openrouter
-    default_chat_model: str = ""  # e.g. gpt-4o-mini or google/gemini-2.5-flash-lite
-    openai_model: str = "gpt-4o-mini"
+    default_llm: str = "openai"  # UI preference: openai | openrouter (both via OpenRouter)
+    default_chat_model: str = ""  # e.g. openai/gpt-4o-mini
+    openai_model: str = "openai/gpt-4o-mini"
     openrouter_model: str = "google/gemini-2.5-flash-lite"
-    openai_embedding_model: str = "text-embedding-3-small"
+    openai_embedding_model: str = "openai/text-embedding-3-small"
     # groq_model: str = "llama-3.1-8b-instant"  # disabled for now
     # gemini_model: str = "gemini-3.1-flash-lite"
 

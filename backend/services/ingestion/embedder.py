@@ -1,6 +1,6 @@
 """
 RepoBrain — Embedding Service
-Embeds code chunks via OpenAI text-embedding-3-small and stores in ChromaDB.
+Embeds code chunks via OpenRouter (openai/text-embedding-3-small) and stores in ChromaDB.
 Using the API means zero local ML model RAM — safe for Render's 512 MB tier.
 """
 from __future__ import annotations
@@ -10,27 +10,32 @@ import chromadb
 from openai import OpenAI
 
 from config import get_settings
+from services.llm.client import OPENROUTER_BASE_URL
 
 # ── Globals (loaded once) ────────────────────────────────────
-_openai_client: OpenAI | None = None
+_embeddings_client: OpenAI | None = None
 _chroma_client: chromadb.PersistentClient | None = None
+
 
 def _embedding_model() -> str:
     return get_settings().openai_embedding_model
 
 
-def get_openai_client() -> OpenAI:
-    """Get or create the OpenAI client (singleton)."""
-    global _openai_client
-    if _openai_client is None:
+def get_embeddings_client() -> OpenAI:
+    """OpenRouter-compatible embeddings client (singleton)."""
+    global _embeddings_client
+    if _embeddings_client is None:
         settings = get_settings()
-        _openai_client = OpenAI(api_key=settings.openai_api_key)
-    return _openai_client
+        _embeddings_client = OpenAI(
+            api_key=settings.openrouter_api_key,
+            base_url=OPENROUTER_BASE_URL,
+        )
+    return _embeddings_client
 
 
 def _embed_texts(texts: list[str]) -> list[list[float]]:
-    """Call OpenAI embeddings API and return a list of float vectors."""
-    client = get_openai_client()
+    """Call OpenRouter embeddings API and return a list of float vectors."""
+    client = get_embeddings_client()
     response = client.embeddings.create(model=_embedding_model(), input=texts)
     return [item.embedding for item in response.data]
 
@@ -105,7 +110,7 @@ def embed_chunks(
                 "name": chunk["name"],
             })
 
-        # Generate embeddings via OpenAI API
+        # Generate embeddings via OpenRouter
         embeddings = _embed_texts(texts)
 
         # Store in ChromaDB
